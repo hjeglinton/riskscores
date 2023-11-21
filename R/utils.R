@@ -8,7 +8,12 @@ clip_exp_vals <- function(x){
   return(pmax(pmin(x, 709.78), -709.78))
 }
 
+
+
+
+
 #' Own glm.fit.own to keep coefficients provided - modified from glm's code
+#' @useDynLib riskscores, .registration = TRUE
 glm_fit_risk <- function (x, y, weights = rep(1, nobs), start = NULL,
                           etastart = NULL, mustart = NULL, offset = rep(0, nobs),
                           family = stats::gaussian(), control = list(), intercept = TRUE, singular.ok=TRUE){
@@ -53,7 +58,7 @@ glm_fit_risk <- function (x, y, weights = rep(1, nobs), start = NULL,
   w <- sqrt((weights[good] * mu.eta.val[good]^2)/variance(mu)[good])
 
   # call Fortran code via C wrapper
-  fit <- .Call(stats:::C_Cdqrls, x[good, , drop = FALSE] * w, z * w,
+  fit <- .Call("Cdqrls", x[good, , drop = FALSE] * w, z * w,
                min(1e-7, control$epsilon/1000), check=FALSE)
   xxnames <- xnames[fit$pivot]
 
