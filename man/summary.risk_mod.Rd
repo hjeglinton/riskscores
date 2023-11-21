@@ -8,6 +8,8 @@
 }
 \arguments{
 \item{object}{an object of class "risk_mod", usually a result of a call to risk_mod()}
+
+\item{...}{additional arguments affecting the summary produced}
 }
 \value{
 text with intercept, nonzero coefficients, gamma, lambda, and deviance

@@ -9,14 +9,34 @@ clip_exp_vals <- function(x){
 }
 
 
-
-
-
-#' Own glm.fit.own to keep coefficients provided - modified from glm's code
+#' Define method for converting to glm object
+#'
+#' Own glm.fit.own to keep coefficients provided - modified from glm's code.
+#' @param x input matrix with dimension n x p, every row is an observation.
+#' @param y numeric vector for the response variable (binomial).
+#' @param weights an optional vector of ‘prior weights’ to be used in the fitting
+#' process. Should be NULL or a numeric vector.
+#' @param start starting values for the parameters in the linear predictor.
+#' @param etastart starting values for the linear predictor.
+#' @param mustart starting values for the vector of means.
+#' @param offset this can be used to specify an a priori known component to be
+#' included in the linear predictor during fitting. This should be NULL or a
+#' numeric vector of length equal to the number of cases. One or more \code{offset}
+#' terms can be included in the formula instead or as well, and if more than one
+#' is specified their sum is used.
+#' @param family a description of the error distribution and link function to be
+#' used in the model. For glm this can be a character string naming a family
+#' function, a family function or the result of a call to a family function. For
+#' glm.fit only the third option is supported.
+#' @param control a list of parameters for controlling the fitting process.
+#' @param intercept logical. Should an intercept be included in the null model?
+#' @param singular.ok logical; if FALSE a singular fit is an error.
+#' @return glm object
 #' @useDynLib riskscores, .registration = TRUE
 glm_fit_risk <- function (x, y, weights = rep(1, nobs), start = NULL,
                           etastart = NULL, mustart = NULL, offset = rep(0, nobs),
-                          family = stats::gaussian(), control = list(), intercept = TRUE, singular.ok=TRUE){
+                          family = stats::gaussian(), control = list(),
+                          intercept = TRUE, singular.ok=TRUE){
 
   # dimensions and names
   x <- as.matrix(x)

@@ -6,6 +6,8 @@
 #' in mod (default NULL)
 #' @param y numeric vector for the response variable (binomial) of length n,
 #' (default NULL)
+#' @param weights numeric vector of length n with weights for each
+#' observation (defult NULL - will give equal weights)
 #' @return list with deviance (dev), accuracy (acc), sensitivity (sens), and
 #' specificity (spec)
 get_metrics <- function(mod, X = NULL, y = NULL, weights = NULL){

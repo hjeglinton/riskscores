@@ -9,6 +9,8 @@
 \arguments{
 \item{x}{an object of class "cv_risk_mod", usually a result of a call to
 cv_risk_mod()}
+
+\item{...}{additional arguments affecting the plot produced}
 }
 \value{
 ggplot object

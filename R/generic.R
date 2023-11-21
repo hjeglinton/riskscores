@@ -2,6 +2,7 @@
 #'
 #' Prints text that summarizes risk_mod objects
 #' @param object an object of class "risk_mod", usually a result of a call to risk_mod()
+#' @param ... additional arguments affecting the summary produced
 #' @return text with intercept, nonzero coefficients, gamma, lambda, and deviance
 #' @export
 summary.risk_mod <- function(object, ...) {
@@ -83,6 +84,7 @@ predict.risk_mod <- function(object, newdata = NULL,
 #' Plots the mean deviance for each lambda tested during cross-validation
 #' @param x an object of class "cv_risk_mod", usually a result of a call to
 #' cv_risk_mod()
+#' @param ... additional arguments affecting the plot produced
 #' @return ggplot object
 #' @export
 plot.cv_risk_mod <- function(x, ...) {

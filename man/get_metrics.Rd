@@ -14,6 +14,9 @@ in mod (default NULL)}
 
 \item{y}{numeric vector for the response variable (binomial) of length n,
 (default NULL)}
+
+\item{weights}{numeric vector of length n with weights for each
+observation (defult NULL - will give equal weights)}
 }
 \value{
 list with deviance (dev), accuracy (acc), sensitivity (sens), and
