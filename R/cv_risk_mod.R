@@ -25,12 +25,14 @@
 #' generator alone.
 #' @return class of cv_risk_mod with a list containing a data.frame of results
 #' along with the lambda_min and lambda_1se
+#' @importFrom foreach %dopar%
 #' @export
 cv_risk_mod <- function(X, y, weights = NULL, a = -10, b = 10, max_iters = 100,
                         tol= 1e-5, nlambda = 25,
                         lambda_min_ratio = ifelse(nrow(X) < ncol(X), 0.01, 1e-04),
                         lambda0 = NULL, nfolds = 10, foldids = NULL, parallel=F,
                         seed = NULL) {
+
 
   if (!is.null(seed)) {
     set.seed(seed)
@@ -86,6 +88,7 @@ cv_risk_mod <- function(X, y, weights = NULL, a = -10, b = 10, max_iters = 100,
 
   # Run through all folds
   # Parallel Programming. ! Must register parallel beforehand
+  i = NULL # set global variable
   if (parallel) {
 
     outlist = foreach::foreach(i = 1:nrow(res_df)) %dopar%
@@ -102,6 +105,7 @@ cv_risk_mod <- function(X, y, weights = NULL, a = -10, b = 10, max_iters = 100,
 
 
   # Summarize
+  dev = acc = NULL # set global variables
   res_df <- res_df %>%
     dplyr::group_by(lambda0) %>%
     dplyr::summarize(mean_dev = mean(dev), sd_dev = stats::sd(dev),

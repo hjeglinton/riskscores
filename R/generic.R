@@ -104,6 +104,7 @@ plot.cv_risk_mod <- function(x, ...) {
   }
 
   # create plot
+  lambda0 = mean_dev = sd_dev = NULL # set global variables
   cv_plot <- ggplot2::ggplot(x$results, ggplot2::aes(x = log(lambda0), y = mean_dev)) +
     ggplot2::geom_point() +
     ggplot2::geom_linerange(ggplot2::aes(ymin = mean_dev - sd_dev, ymax= mean_dev + sd_dev)) +
