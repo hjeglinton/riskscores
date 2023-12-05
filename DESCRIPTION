@@ -16,9 +16,10 @@ Imports:
     stats
 Suggests: 
     knitr,
+    kableExtra,
     rmarkdown,
     tidyverse
-VignetteBuilder: knitr
+VignetteBuilder: knitr, kableExtra
 Depends: 
     R (>= 2.10)
 LazyData: true
