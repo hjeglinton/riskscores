@@ -73,10 +73,8 @@ This dataset contains 683 observations and 9 features. Our goal is to develop a 
 
 Before building a risk score model, data often need to be preprocessed. Specifically, the dataset needs to have a binary outcome with all other variables containing either binary or integer values. 
 
-The `breastcancer` dataset is already ready to go. However, we'll still need to split out our data into a matrix with all covariates (`X`) and a vector with the outcome data (`y`). In this case, the first column in our dataset contains the outcome variable (`benign`). 
+The `breastcancer` dataset is mostly ready to go. We'll still need to split out our data into a matrix with all covariates (`X`) and a vector with the outcome data (`y`). In this case, the first column in our dataset contains the outcome variable (`Benign`). 
  
-
-
 
 ```{r}
 y <- breastcancer[[1]]
@@ -88,10 +86,18 @@ X <- as.matrix(breastcancer[,2:ncol(breastcancer)])
 
 The penalty coefficient $\lambda_0$ controls the sparsity of the model -- a larger value of $\lambda_0$ will result in fewer non-zero coefficients. We can use cross validation to find the optimal $\lambda_0$ value that creates a sufficiently sparse model without sacrificing performance. 
 
+Each cross-validation fold should contain an approximately equal proportion of cases in relationship to controls. The `riskscores` package contains the function `stratify_folds` that creates fold IDs with an equal proportion of cases in each. These fold IDs can be entered into the `cv_risk_mod()` function under the `foldids` parameter. Otherwise, `cv_risk_mod()` will set random fold IDs. 
+
+```{r}
+foldids <- stratify_folds(y, nfolds = 5, seed = 1)
+
+```
+
+
 The `cv_risk_mod()` function runs cross validation for a grid of possible $\lambda_0$ values. If the user does not specify the vector of $\lambda_0$ values to test, the program constructs this $\lambda_0$ sequence. The maximum $\lambda_0$ in this sequence is the smallest value such that all coefficients in the logistic regression model are zero. The minimum $\lambda_0$ in the sequence is calculated using the user-defined `lambda_ratio` argument. The $\lambda_0$ grid is created by generating `nlambda` values linear on the log scale from the minimum $\lambda_0$ to the maximum $\lambda_0$. We've set `nlambda` to 25, so the program will construct an appropriate sequence of 25 $\lambda_0$ values to test using cross validation. 
 
 ```{r}
-cv_results <- cv_risk_mod(X, y, nfolds = 5, nlambda = 25, seed = 1)
+cv_results <- cv_risk_mod(X, y, foldids = foldids, nlambda = 25)
 ```
 
 
@@ -121,27 +127,28 @@ tail(cv_results$results)
 
 ## Fitting a Risk Score Model
 
-We'll fit a model on the full data using the function `risk_mod()`. We'll use the "lambda_min" value determined by cross-validation as our $\lambda_0$ parameter.  
+We'll fit a model on the full data using the function `risk_mod()`. We'll use the "lambda_1se" value determined by cross-validation as our $\lambda_0$ parameter.  
 
 ```{r}
-mod <- risk_mod(X, y, lambda0 = cv_results$lambda_min)
+mod <- risk_mod(X, y, lambda0 = cv_results$lambda_1se)
 
 ```
 
-The integer risk score model can be viewed by calling `mod$model_card`. An individual's risk score can be calculated by multiplying each covariate response by its respective number of points and then adding all points together. 
+The integer risk score model can be viewed by calling `mod$model_card`. An individual's risk score can be calculated by multiplying each covariate response by its respective number of points and then adding all points together. For example, a patient with a ClumpThickness value of 1, a BareNuclei value of 5, and a BlandChromatin value of 10 would receive a score of $10(1) + 7(5) + 8(10) = 125$.
 
 ```{r, echo = FALSE}
 mod$model_card %>%
   kable(caption = "`mod$model_card`")
 ```
 
-Each score can then be mapped to a risk probability. The `mod$score_map` data frame maps an integer range of scores to their associated risk. For this example dataset, `mod$score_map` includes a range of integer scores from 51 to 510, which are the minimum and maximum scores possible with this model. The table below shows a sample of these scores mapped to their associated risk. . 
+
+Each score can then be mapped to a risk probability. The `mod$score_map` dataframe maps an integer range of scores to their associated risk. For this example dataset, `mod$score_map` includes a range of integer scores from 25 to 250, which are the minimum and maximum scores predicted from the training data. The table below shows a sample of these scores mapped to their associated risk. We can see that a patient who received a score of 125 would have a 77.9% risk of their tissue sample being malignant.  
 
 
 
 ```{r, echo = FALSE}
 mod$score_map %>%
-  filter(Score %in% seq(50, 300, 50)) %>%
+  filter(Score %in% seq(25, 200, 25)) %>%
   kable(caption = "`mod$score_map`")
 ```
 
@@ -195,10 +202,10 @@ coef(mod$glm_mod)
 
 ### predict
 
-Running `predict()` on a `risk_mod` object allows for three types of prediction, as the `type` parameter can be set to either `"link"`, `"response"`, or  `"score"`. These first two options are the same as when `predict()` is run on a logistic `glm` object. The added `"score"` option returns each subject's risk score, as calculated from the integer coefficients. 
+Running `predict()` on a `risk_mod` object allows for three types of prediction, as the `type` parameter can be set to either `'link'`, `'response'`, or  `'score'`. These first two options are the same as when `predict()` is run on a logistic `glm` object. The added `"score"` option returns each subject's score, as calculated from the integer coefficients in the risk score model. 
 
 
-The table below compares the three possible prediction types for five example subjects. The first seven columns contain data for clump thickness, uniformity of cell shape, marginal adhesion, bare nuclei, bland chromatin, normal nucleoli, and mitosis, respectively. 
+The table below compares the three possible prediction types for five example subjects. The first seven columns contain data for clump thickness, bare nuclei, and bland chromatin, respectively. 
 
 ```{r, echo = FALSE}
 
@@ -210,31 +217,29 @@ response <- predict(mod, type = "response")[1:5] %>%
 score <- predict(mod, type = "score")[1:5]
 
 data.frame(X[1:5,which(dimnames(X)[[2]] %in% c("ClumpThickness",
-                                             "UniformityOfCellShape",
-                                             "MarginalAdhesion", "BareNuclei",
-                                             "BlandChromatin", "NormalNucleoli",
-                                             "Mitoses"))],
+                                             "BareNuclei",
+                                             "BlandChromatin"))],
                        score, link, response) %>%
   kable("html",
         booktabs = T,
-        col.names = c("CT", "USC", "MA", "BN", "BC", "NN", "M",
-                     '"score"', '"link"', '"response"'),
+        col.names = c("CT","BN", "BC", 
+                     "'score'", "'link'", "'response'"),
         caption = "Comparison of `predict()` outputs") %>%
   kable_styling("striped", full_width = F) %>%
-  add_header_above(c("Covariates" = 7, "Prediction" = 3))
+  add_header_above(c("Covariates" = 3, "Prediction" = 3))
 
 ```
 
-The "score" is a linear combination of the covariates and their integer coefficients: 
+The 'score' is a linear combination of the covariates and their integer coefficients: 
 
-- $\text{score} = 10(CT) + 6(USC) + 6(MA) + 7(BN) + 8(BC) + 4(NN) + 10(M)$
+- $\text{score} = 10(\text{CT}) + 7(\text{BN}) + 8(\text{BC})$
 
 
-The "link" is a linear combination using the logistic regression equation:
+The 'link' is a linear combination of the covariates using the logistic regression equation:
 
-- $\text{link} = -10.04 + 0.56(CT) + 0.33(UCS) + 0.34(MA) + 0.39(BN) + 0.45(BC) + 0.22(NN) + 0.56(M)$
+- $\text{link} = -9.54 + 0.86(\text{CT}) + 0.61(\text{BN}) + 0.69(\text{BC})$
 
-The "response" converts these link values to probabilities: 
+The 'response' converts these link values to probabilities: 
 
 - $\text{response} = e^{\text{link}}/(1+e^{\text{link}})$ 
 
@@ -244,6 +249,6 @@ The "response" converts these link values to probabilities:
 The relationship between scores and risk can be visualized by calling `plot()` on a `risk_mod` object. 
 
 ```{r}
-plot(mod, score_min = 50, score_max = 300)
+plot(mod, score_min = 25, score_max = 200)
 ```
 
