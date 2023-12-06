@@ -1,10 +1,15 @@
 Package: riskscores
 Title: Optimized Integer Risk Score Models
 Version: 0.0.0.9000
-Authors@R: 
-    person("Hannah", "Eglinton", , "hannah_eglinton@brown.edu", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
-License: MIT + file LICENSE
+Authors@R: c(
+    person("Hannah", "Eglinton", , "eglintonh@gmail.com", role = c("aut", "cre"),
+    person("Alice", "Paul", , "alice_paul@brown.edu", role = c("aut", "cre"),
+    person("Oscar", "Yan", , "yu_yan@brown.edu", role = "aut"))))
+Description: Implements an optimized approach to learning risk score models, where 
+    sparsity and integer constraints are integrated into the model-fitting 
+    process.
+URL: https://github.com/hjeglinton/riskscores
+License: GPL (>= 3) + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
@@ -17,8 +22,7 @@ Imports:
 Suggests: 
     knitr,
     kableExtra,
-    rmarkdown,
-    tidyverse
+    rmarkdown
 VignetteBuilder: knitr, kableExtra
 Depends: 
     R (>= 2.10)

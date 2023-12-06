@@ -15,7 +15,9 @@ knitr::opts_chunk$set(
 
 library(knitr)
 library(kableExtra)
-library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(magrittr)
 
 ```
 
@@ -73,7 +75,7 @@ This dataset contains 683 observations and 9 features. Our goal is to develop a 
 
 Before building a risk score model, data often need to be preprocessed. Specifically, the dataset needs to have a binary outcome with all other variables containing either binary or integer values. 
 
-The `breastcancer` dataset is mostly ready to go. We'll still need to split out our data into a matrix with all covariates (`X`) and a vector with the outcome data (`y`). In this case, the first column in our dataset contains the outcome variable (`Benign`). 
+The `breastcancer` dataset is mostly ready to go. We'll still need to split out our data into a matrix with all covariates (`X`) and a vector with the outcome data (`y`). In this case, the first column in our dataset contains the outcome variable. 
  
 
 ```{r}
@@ -86,7 +88,7 @@ X <- as.matrix(breastcancer[,2:ncol(breastcancer)])
 
 The penalty coefficient $\lambda_0$ controls the sparsity of the model -- a larger value of $\lambda_0$ will result in fewer non-zero coefficients. We can use cross validation to find the optimal $\lambda_0$ value that creates a sufficiently sparse model without sacrificing performance. 
 
-Each cross-validation fold should contain an approximately equal proportion of cases in relationship to controls. The `riskscores` package contains the function `stratify_folds` that creates fold IDs with an equal proportion of cases in each. These fold IDs can be entered into the `cv_risk_mod()` function under the `foldids` parameter. Otherwise, `cv_risk_mod()` will set random fold IDs. 
+Ideally, each cross-validation fold should contain an approximately equal proportion of cases. The `riskscores` package contains the function `stratify_folds()` that creates fold IDs with an equal proportion of cases in each fold. These fold IDs can be entered into the `cv_risk_mod()` function under the `foldids` parameter. Otherwise, `cv_risk_mod()` will set random fold IDs. 
 
 ```{r}
 foldids <- stratify_folds(y, nfolds = 5, seed = 1)
@@ -102,7 +104,7 @@ cv_results <- cv_risk_mod(X, y, foldids = foldids, nlambda = 25)
 
 
 
-Running `plot()` on a `cv_risk_mod` object creates a plot of mean deviance for each $\lambda_0$ value in the grid. The number of nonzero coefficients that are produced by each $\lambda_0$ value when fit on the full data are listed at the top of the plot. The $\lambda_0$ value with the lowest mean deviance ("lambda_min") is indicated in red, and its standard deviation is marked with a red dashed line.  In our example, the $\lambda_0$ that resulted in the lowest mean deviance creates a model with 7 nonzero coefficients. Its precise value can be accessed by calling `cv_results$lambda_min`. If we want a sparser model, we could increase $\lambda_0$ to "lambda_1se", the largest value whose mean deviance is within one standard error of "lambda_min". This value can be accessed by calling `cv_results$lambda_1se`. 
+Running `plot()` on a `cv_risk_mod` object creates a plot of mean deviance for each $\lambda_0$ value in the grid. The number of nonzero coefficients that are produced by each $\lambda_0$ value when fit on the full data are listed at the top of the plot. The $\lambda_0$ value with the lowest mean deviance ("lambda_min") is indicated in red, and its standard deviation is marked with a red dashed line.   Its precise value can be accessed by calling `cv_results$lambda_min`. If we want a sparser model, we could increase $\lambda_0$ to "lambda_1se", the largest value whose mean deviance is within one standard error of "lambda_min". This value can be accessed by calling `cv_results$lambda_1se`. In our example, "lambda_min" creates a model with 8 non-zero coefficients and "lambda_1se" creates a model with 3 non-zero coefficients. 
 
 ```{r, fig.width = 5, fig.height = 3, dpi = 125}
 plot(cv_results)
@@ -134,7 +136,7 @@ mod <- risk_mod(X, y, lambda0 = cv_results$lambda_1se)
 
 ```
 
-The integer risk score model can be viewed by calling `mod$model_card`. An individual's risk score can be calculated by multiplying each covariate response by its respective number of points and then adding all points together. For example, a patient with a ClumpThickness value of 1, a BareNuclei value of 5, and a BlandChromatin value of 10 would receive a score of $10(1) + 7(5) + 8(10) = 125$.
+The integer risk score model can be viewed by calling `mod$model_card`. An individual's risk score can be calculated by multiplying each covariate response by its respective number of points and then adding all points together. In our example below, a patient with a ClumpThickness value of 1, a BareNuclei value of 5, and a BlandChromatin value of 10 would receive a score of $10(1) + 7(5) + 8(10) = 125$.
 
 ```{r, echo = FALSE}
 mod$model_card %>%
@@ -190,7 +192,7 @@ coef(mod) # equivalently: mod$beta
 
 ```
 
-We can map our integer score model to an equivalent non-integer logistic regression model by multiplying the integer and coefficients by $\gamma$ (saved as `$gamma` in the `risk_mod` object. 
+We can map our integer score model to an equivalent logistic regression model by multiplying the integer and coefficients by $\gamma$ (saved as `$gamma` in the `risk_mod` object). 
 
 ```{r}
 coef(mod) * mod$gamma
@@ -207,10 +209,10 @@ coef(mod$glm_mod)
 
 ### predict
 
-Running `predict()` on a `risk_mod` object allows for three types of prediction, as the `type` parameter can be set to either `'link'`, `'response'`, or  `'score'`. These first two options are the same as when `predict()` is run on a logistic `glm` object. The added `"score"` option returns each subject's score, as calculated from the integer coefficients in the risk score model. 
+Running `predict()` on a `risk_mod` object allows for three types of prediction, as the `type` parameter can be set to either `'link'`, `'response'`, or  `'score'`. These first two options are the same as when `predict()` is run on a logistic `glm` object. The added `'score'` option returns each subject's score, as calculated from the integer coefficients in the risk score model. 
 
 
-The table below compares the three possible prediction types for five example subjects. The first seven columns contain data for clump thickness, bare nuclei, and bland chromatin, respectively. 
+The table below compares the three possible prediction types for five example subjects. The first three columns contain data for clump thickness, bare nuclei, and bland chromatin, respectively. 
 
 ```{r, echo = FALSE}
 
@@ -240,7 +242,7 @@ The 'score' is a linear combination of the covariates and their integer coeffici
 - $\text{score} = 10(\text{CT}) + 7(\text{BN}) + 8(\text{BC})$
 
 
-The 'link' is a linear combination of the covariates using the logistic regression equation:
+The 'link' is a linear combination of the covariates using the full logistic regression equation:
 
 - $\text{link} = -9.54 + 0.86(\text{CT}) + 0.61(\text{BN}) + 0.69(\text{BC})$
 
