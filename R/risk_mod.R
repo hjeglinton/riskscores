@@ -268,6 +268,7 @@ risk_mod <- function(X, y, gamma = NULL, beta = NULL, weights = NULL,
   glm_mod <- stats::glm(y~.-1, family = "binomial", weights = weights,
                  start = gamma*beta, method=glm_fit_risk, data = df)
   names(beta) <- names(stats::coef(glm_mod))
+  names(beta)[1] <- "(Intercept)"
 
   # save model score card
   nonzero_beta <- beta[beta != 0][-1]
