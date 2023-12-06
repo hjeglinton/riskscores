@@ -2,12 +2,12 @@
 % Please edit documentation in R/helpers.R
 \name{get_metrics}
 \alias{get_metrics}
-\title{Get metrics from beta and gamma}
+\title{Get Model Metrics}
 \usage{
 get_metrics(mod, X = NULL, y = NULL, weights = NULL)
 }
 \arguments{
-\item{mod}{riskMod object}
+\item{mod}{an object of class \code{risk_mod}, usually a result of a call to \code{risk_mod()}}
 
 \item{X}{input matrix with dimensions n x p, must match dimensions of beta
 in mod (default NULL)}
@@ -23,5 +23,6 @@ list with deviance (dev), accuracy (acc), sensitivity (sens), and
 specificity (spec)
 }
 \description{
-Calculates deviance, accuracy, sensitivity, and specificity
+Calculates a risk model's deviance, accuracy, sensitivity, and specificity
+given a set of data.
 }

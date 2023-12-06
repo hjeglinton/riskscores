@@ -1,7 +1,8 @@
-#' Get metrics from beta and gamma
+#' Get Model Metrics
 #'
-#' Calculates deviance, accuracy, sensitivity, and specificity
-#' @param mod riskMod object
+#' Calculates a risk model's deviance, accuracy, sensitivity, and specificity
+#' given a set of data.
+#' @param mod an object of class `risk_mod`, usually a result of a call to `risk_mod()`
 #' @param X input matrix with dimensions n x p, must match dimensions of beta
 #' in mod (default NULL)
 #' @param y numeric vector for the response variable (binomial) of length n,

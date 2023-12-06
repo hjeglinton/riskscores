@@ -192,23 +192,67 @@ risk_coord_desc <- function(X, y, gamma, beta, weights, lambda0 = 0,
   return(list(gamma=gamma, beta=beta))
 }
 
-#' Risk model estimation
+#' Fit an Integer Risk Score Model
 #'
-#' Returns the estimated gamma and beta for the risk score model along
-#' with a glm object with the corresponding coefficients
-#' @param X input matrix with dimension n x p, every row is an observation
-#' @param y numeric vector for the response variable (binomial)
-#' @param gamma starting value to rescale betas for prediction (default NULL)
-#' @param beta starting numeric vector with p coefficients (default NULL)
-#' @param weights numeric vector of length n with weights for each
-#' observation (defult NULL - will give equal weights)
-#' @param lambda0 penalty coefficient for L0 term (default 0)
-#' @param a integer lower bound for betas (default -10)
-#' @param b integer upper bound for betas (default 10)
-#' @param max_iters maximum number of iterations (default 100)
-#' @param tol tolerance for convergence
-#' @return optimal gamma (numeric) and beta (numeric vector) and corresponding
-#' glm object (mod) as a list
+#' Fits an optimized integer risk score model using a cyclical coordinate descent
+#'  algorithm. Returns an object of class "risk_mod".
+#'
+#' @details
+#'
+#' This function uses a cyclical coordinate descent algorithm to solve the
+#' following optimization problem.
+#'
+#'  \deqn{\min_{\alpha,\beta} \quad \frac{1}{n} \sum_{i=1}^{n} (\gamma y_i x_i^T \beta - log(1 + exp(\gamma x_i^T \beta))) + \lambda_0 \sum_{j=1}^{p} 1(\beta_{j} \neq 0)}
+#'
+#' The following constraints ensure that the model will be sparse and include
+#' only integer coefficients.
+#'
+#'  \deqn{l \le \beta_j \le u \; \; \; \forall j = 1,2,...,p}
+#'  \deqn{\beta_j \in \mathbb{Z} \; \; \; \forall j = 1,2,...,p }
+#'  \deqn{\beta_0, \gamma \in \mathbb{R}}
+#'
+#' @param X Input covariate matrix with dimension \eqn{n \times p};
+#'  every row is an observation.
+#' @param y Numeric vector for the (binomial) response variable.
+#' @param gamma Starting value to rescale coefficients for prediction (optional).
+#' @param beta Starting numeric vector with \eqn{p} coefficients.
+#'  Default starting coefficients are rounded coefficients from a
+#'  logistic regression model.
+#' @param weights Numeric vector of length \eqn{n} with weights for each
+#'  observation. Unless otherwise specified, default will give equal weight to
+#'  each observation.
+#' @param lambda0 Penalty coefficient for L0 term (default: 0).
+#'  See [cv_risk_mod()] for `lambda0` tuning.
+#' @param a Integer lower bound for coefficients (default: -10).
+#' @param b Integer upper bound for coefficients (default: 10).
+#' @param max_iters Maximum number of iterations (default: 100).
+#' @param tol Tolerance for convergence (default: 1e-5).
+#' @return An object of class "risk_mod" with the following attributes:
+#'  * `gamma`: Final scalar value.
+#'  * `beta`: Vector of integer coefficients.
+#'  * `glm_mod`: Object of class "glm" with logistic regression model.
+#'    (see [stats::glm]).
+#'  * `X`: Input covariate matrix.
+#'  * `y`: Input response vector.
+#'  * `weights`: Input weights.
+#'  * `lambda0`: Imput `lambda0` value.
+#'  * `model_card`: Dataframe displaying the nonzero integer coefficients
+#'    (i.e. "points") of the risk score model.
+#'  * `score_map`: Dataframe containing a column of possible scores and a column
+#'    with each score's associated risk probability.
+#' @examples
+#' X <- matrix(rnorm(100 * 20), 100, 20)
+#' y <- sample(c(0,1), 100, replace = TRUE)
+#'
+#' mod1 <- risk_mod(X, y)
+#' mod1$model_card
+#'
+#' mod2 <- risk_mod(X, y, lambda0 = 0.01)
+#' mod2$model_card
+#'
+#' mod3 <- risk_mod(X, y, lambda0 = 0.01, a = -5, b = 5)
+#' mod3$model_card
+#'
 #' @export
 risk_mod <- function(X, y, gamma = NULL, beta = NULL, weights = NULL,
                      lambda0 = 0, a = -10, b = 10, max_iters = 100, tol= 1e-5) {
@@ -255,14 +299,12 @@ risk_mod <- function(X, y, gamma = NULL, beta = NULL, weights = NULL,
   }
   if (length(beta) != ncol(X)) stop("beta and X non-compatible")
   if (length(y) != nrow(X)) stop("y and X non-compatible")
-  #print(beta)
+
   # Run coordinate descent from initial solution
   res <- risk_coord_desc(X, y, gamma, beta, weights, lambda0, a, b, max_iters,
                          tol)
   gamma <- res$gamma
   beta <- res$beta
-
-
 
   # Convert to GLM object
   glm_mod <- stats::glm(y~.-1, family = "binomial", weights = weights,
@@ -270,7 +312,7 @@ risk_mod <- function(X, y, gamma = NULL, beta = NULL, weights = NULL,
   names(beta) <- names(stats::coef(glm_mod))
   names(beta)[1] <- "(Intercept)"
 
-  # save model score card
+  # Save model score card
   nonzero_beta <- beta[beta != 0][-1]
   if (length(nonzero_beta) <= 1) {
     model_card <- NULL
@@ -278,7 +320,7 @@ risk_mod <- function(X, y, gamma = NULL, beta = NULL, weights = NULL,
   } else {
     model_card <- data.frame(Points = nonzero_beta)
 
-    # get range of possible scores
+    # Get range of possible scores
     X_nonzero <- X[,which(beta != 0)]
     X_nonzero <- X_nonzero[,-1]
     min_pts <- rep(NA, length(nonzero_beta))
@@ -291,15 +333,14 @@ risk_mod <- function(X, y, gamma = NULL, beta = NULL, weights = NULL,
 
     score_range <- seq(sum(min_pts), sum(max_pts))
 
-    # map scores to risk
+    # Map scores to risk
     v <- gamma*(beta[1] + score_range)
     p <- exp(v)/(1+exp(v))
 
-    # save score map
+    # Save score map
     score_map <- data.frame(Score = score_range,
                             Risk = round(p,4))
   }
-
 
   # Return risk_mod object
   mod <- list(gamma=gamma, beta=beta, glm_mod=glm_mod, X=X, y=y, weights=weights,

@@ -2,7 +2,7 @@
 % Please edit documentation in R/risk_mod.R
 \name{risk_mod}
 \alias{risk_mod}
-\title{Risk model estimation}
+\title{Fit an Integer Risk Score Model}
 \usage{
 risk_mod(
   X,
@@ -18,32 +18,77 @@ risk_mod(
 )
 }
 \arguments{
-\item{X}{input matrix with dimension n x p, every row is an observation}
+\item{X}{Input covariate matrix with dimension \eqn{n \times p};
+every row is an observation.}
 
-\item{y}{numeric vector for the response variable (binomial)}
+\item{y}{Numeric vector for the (binomial) response variable.}
 
-\item{gamma}{starting value to rescale betas for prediction (default NULL)}
+\item{gamma}{Starting value to rescale coefficients for prediction (optional).}
 
-\item{beta}{starting numeric vector with p coefficients (default NULL)}
+\item{beta}{Starting numeric vector with \eqn{p} coefficients.
+Default starting coefficients are rounded coefficients from a
+logistic regression model.}
 
-\item{weights}{numeric vector of length n with weights for each
-observation (defult NULL - will give equal weights)}
+\item{weights}{Numeric vector of length \eqn{n} with weights for each
+observation. Unless otherwise specified, default will give equal weight to
+each observation.}
 
-\item{lambda0}{penalty coefficient for L0 term (default 0)}
+\item{lambda0}{Penalty coefficient for L0 term (default: 0).
+See \code{\link[=cv_risk_mod]{cv_risk_mod()}} for \code{lambda0} tuning.}
 
-\item{a}{integer lower bound for betas (default -10)}
+\item{a}{Integer lower bound for coefficients (default: -10).}
 
-\item{b}{integer upper bound for betas (default 10)}
+\item{b}{Integer upper bound for coefficients (default: 10).}
 
-\item{max_iters}{maximum number of iterations (default 100)}
+\item{max_iters}{Maximum number of iterations (default: 100).}
 
-\item{tol}{tolerance for convergence}
+\item{tol}{Tolerance for convergence (default: 1e-5).}
 }
 \value{
-optimal gamma (numeric) and beta (numeric vector) and corresponding
-glm object (mod) as a list
+An object of class "risk_mod" with the following attributes:
+\itemize{
+\item \code{gamma}: Final scalar value.
+\item \code{beta}: Vector of integer coefficients.
+\item \code{glm_mod}: Object of class "glm" with logistic regression model.
+(see \link[stats:glm]{stats::glm}).
+\item \code{X}: Input covariate matrix.
+\item \code{y}: Input response vector.
+\item \code{weights}: Input weights.
+\item \code{lambda0}: Imput \code{lambda0} value.
+\item \code{model_card}: Dataframe displaying the nonzero integer coefficients
+(i.e. "points") of the risk score model.
+\item \code{score_map}: Dataframe containing a column of possible scores and a column
+with each score's associated risk probability.
+}
 }
 \description{
-Returns the estimated gamma and beta for the risk score model along
-with a glm object with the corresponding coefficients
+Fits an optimized integer risk score model using a cyclical coordinate descent
+algorithm. Returns an object of class "risk_mod".
+}
+\details{
+This function uses a cyclical coordinate descent algorithm to solve the
+following optimization problem.
+
+\deqn{\min_{\alpha,\beta} \quad \frac{1}{n} \sum_{i=1}^{n} (\gamma y_i x_i^T \beta - log(1 + exp(\gamma x_i^T \beta))) + \lambda_0 \sum_{j=1}^{p} 1(\beta_{j} \neq 0)}
+
+The following constraints ensure that the model will be sparse and include
+only integer coefficients.
+
+\deqn{l \le \beta_j \le u \; \; \; \forall j = 1,2,...,p}
+\deqn{\beta_j \in \mathbb{Z} \; \; \; \forall j = 1,2,...,p }
+\deqn{\beta_0, \gamma \in \mathbb{R}}
+}
+\examples{
+X <- matrix(rnorm(100 * 20), 100, 20)
+y <- sample(c(0,1), 100, replace = TRUE)
+
+mod1 <- risk_mod(X, y)
+mod1$model_card
+
+mod2 <- risk_mod(X, y, lambda0 = 0.01)
+mod2$model_card
+
+mod3 <- risk_mod(X, y, lambda0 = 0.01, a = -5, b = 5)
+mod3$model_card
+
 }
