@@ -127,4 +127,35 @@ plot.cv_risk_mod <- function(x, ...) {
   return(cv_plot)
 }
 
+#' Plots the logistic regression curve of the risk score model
+#'
+#' Line plot with scores on the x-axis and risk on the y-axis.
+#' @param x an object of class "risk_mod", usually a result of a call to
+#' risk_mod()
+#' @param score_min the minimum score displayed on the x-axis. The default is the
+#' minimum score predicted from model's training data.
+#' @param score_max the maximum score displayed on the x-axis. The default is the
+#' maximum score predicted from model's training data.
+#' @param ... additional arguments affecting the plot produced
+#' @return ggplot object
+#' @export
+plot.risk_mod <- function(x, score_min = NULL, score_max = NULL, ...) {
+
+  if (is.null(score_min)) {
+    score_min <- min(predict.risk_mod(x, type = "score"))
+  }
+
+  if (is.null(score_max)) {
+    score_max <- max(predict.risk_mod(x, type = "score"))
+  }
+
+
+  ggplot2::ggplot() +
+    ggplot2::geom_function(data = data.frame(x = seq(score_min, score_max)),
+                           ggplot2::aes(x),
+                  fun = function(i) get_risk(x, i)) +
+    ggplot2::labs(x = "Score", y = "Risk") +
+    ggplot2::theme_bw()
+
+}
 

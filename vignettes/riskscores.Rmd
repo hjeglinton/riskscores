@@ -241,4 +241,9 @@ The "response" converts these link values to probabilities:
 
 ### plot
 
+The relationship between scores and risk can be visualized by calling `plot()` on a `risk_mod` object. 
+
+```{r}
+plot(mod)
+```
 

@@ -2,6 +2,7 @@
 
 S3method(coef,risk_mod)
 S3method(plot,cv_risk_mod)
+S3method(plot,risk_mod)
 S3method(predict,risk_mod)
 S3method(summary,risk_mod)
 export("%>%")
