@@ -244,6 +244,6 @@ The "response" converts these link values to probabilities:
 The relationship between scores and risk can be visualized by calling `plot()` on a `risk_mod` object. 
 
 ```{r}
-plot(mod)
+plot(mod, score_min = 50, score_max = 300)
 ```
 
