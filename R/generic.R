@@ -45,8 +45,7 @@ coef.risk_mod <- function(object) {
 #' Obtains predictions from a risk score model object.
 #' @param object an object of class "risk_mod", usually a result of a call to
 #' risk_mod()
-#' @param newdata optionally, a data frame in which to look for variables with
-#' which to predict. If omitted, the fitted linear predictors are used.
+#' @param newx matrix of new values for `x` at which predictions are to be made.
 #' @param type the type of prediction required. The default is on the scale of
 #' the linear predictors; the alternative "response is on the scale of the
 #' response variable. Thus for a risk score model, the default predictions are of
@@ -54,16 +53,29 @@ coef.risk_mod <- function(object) {
 #' predicted risk probabilities. The "score" option returns integer risk scores.
 #' @return array with predictions
 #' @export
-predict.risk_mod <- function(object, newdata = NULL,
+predict.risk_mod <- function(object, newx = NULL,
                              type = c("link", "response", "score")) {
 
-  if (is.null(newdata)) {
+  if (is.null(newx)) {
     X <- object$X
   } else {
-    X <- newdata
+    X <- newx
+
+    # Add intercept column
+    if (!all(X[,1] == rep(1, nrow(X)))) {
+      X <- cbind(rep(1, nrow(X)), X)
+    }
   }
 
-  v <- object$gamma * X %*% object$beta
+  # Remove non-zero coefficients
+  beta_new <- object$beta[object$beta != 0]
+  X_new <- X[,c(1, which(dimnames(X)[[2]] %in% names(beta_new)))]
+
+  if (!all(names(beta_new)[-1] %in% dimnames(X_new)[[2]][-1])) {
+    stop(paste0("newx must contain all non-zero covariates (", paste(names(beta_new)[-1], collapse = ", "), ")"))
+  }
+
+  v <- object$gamma * X_new %*% beta_new
   v <- clip_exp_vals(v)
   p <- exp(v)/(1+exp(v))
 

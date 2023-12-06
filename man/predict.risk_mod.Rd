@@ -4,14 +4,13 @@
 \alias{predict.risk_mod}
 \title{Model Predictions}
 \usage{
-\method{predict}{risk_mod}(object, newdata = NULL, type = c("link", "response", "score"))
+\method{predict}{risk_mod}(object, newx = NULL, type = c("link", "response", "score"))
 }
 \arguments{
 \item{object}{an object of class "risk_mod", usually a result of a call to
 risk_mod()}
 
-\item{newdata}{optionally, a data frame in which to look for variables with
-which to predict. If omitted, the fitted linear predictors are used.}
+\item{newx}{matrix of new values for \code{x} at which predictions are to be made.}
 
 \item{type}{the type of prediction required. The default is on the scale of
 the linear predictors; the alternative "response is on the scale of the
