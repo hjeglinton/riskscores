@@ -153,6 +153,11 @@ mod$score_map %>%
 ```
 
 
+The function `get_risk()` can be used to calculate the risk from a given score (or a vector of scores). 
+
+```{r}
+get_risk(mod, score = 125)
+```
 
 
 
