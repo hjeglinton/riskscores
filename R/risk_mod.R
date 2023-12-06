@@ -213,6 +213,12 @@ risk_coord_desc <- function(X, y, gamma, beta, weights, lambda0 = 0,
 risk_mod <- function(X, y, gamma = NULL, beta = NULL, weights = NULL,
                      lambda0 = 0, a = -10, b = 10, max_iters = 100, tol= 1e-5) {
 
+
+  # Add intercept column
+  if (!all(X[,1] == rep(1, nrow(X)))) {
+    X <- cbind(rep(1, nrow(X)), X)
+  }
+
   # Weights
   if (is.null(weights))
     weights <- rep(1, nrow(X))

@@ -73,8 +73,7 @@ This dataset contains 683 observations and 9 features. Our goal is to develop a 
 
 Before building a risk score model, data often need to be preprocessed. Specifically, the dataset needs to have a binary outcome with all other variables containing either binary or integer values. 
 
-The `breastcancer` dataset is already ready to go. However, we'll still need to split out our data into a matrix with all covariates (`X`) and a vector with the outcome data (`y`). In this case, the first column in our dataset contains the outcome variable (`benign`). We also add to `X` a column representing the intercept (i.e. a column containing all 1s).
-
+The `breastcancer` dataset is already ready to go. However, we'll still need to split out our data into a matrix with all covariates (`X`) and a vector with the outcome data (`y`). In this case, the first column in our dataset contains the outcome variable (`benign`). 
  
 
 
@@ -82,7 +81,7 @@ The `breastcancer` dataset is already ready to go. However, we'll still need to 
 ```{r}
 y <- breastcancer[[1]]
 X <- as.matrix(breastcancer[,2:ncol(breastcancer)])
-X <- cbind(rep(1,nrow(X)), X) # add intercept column
+
 ```
 
 ## Cross Validation
@@ -165,6 +164,7 @@ Running `summary()` on our model will return the intercept, the scores of each n
 
 ```{r}
 summary(mod)
+
 ```
 
 
@@ -175,6 +175,7 @@ A vector containing the risk score model intercept and integer coefficients can 
 
 ```{r}
 coef(mod) # equivalently: mod$beta
+
 ```
 
 We can map our integer score model to an equivalent non-integer logistic regression model by multiplying the integer and coefficients by $\gamma$ (saved as `$gamma` in the `risk_mod` object. 
@@ -188,6 +189,7 @@ The `risk_mod` object stores a `glm` object of this non-integer logistic regress
 
 ```{r}
 coef(mod$glm_mod)
+
 ```
 
 

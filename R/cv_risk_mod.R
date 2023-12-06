@@ -33,9 +33,14 @@ cv_risk_mod <- function(X, y, weights = NULL, a = -10, b = 10, max_iters = 100,
                         lambda0 = NULL, nfolds = 10, foldids = NULL, parallel=F,
                         seed = NULL) {
 
-
+  # Set seed
   if (!is.null(seed)) {
     set.seed(seed)
+  }
+
+  # Add intercept column
+  if (!all(X[,1] == rep(1, nrow(X)))) {
+    X <- cbind(rep(1, nrow(X)), X)
   }
 
   # Get folds
