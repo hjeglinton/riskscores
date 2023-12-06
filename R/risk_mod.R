@@ -297,7 +297,7 @@ risk_mod <- function(X, y, gamma = NULL, beta = NULL, weights = NULL,
 
     # save score map
     score_map <- data.frame(Score = score_range,
-                            Risk = round(100*p,1))
+                            Risk = round(p,4))
   }
 
 
