@@ -2,7 +2,7 @@
 % Please edit documentation in R/cv_risk_mod.R
 \name{cv_risk_mod}
 \alias{cv_risk_mod}
-\title{Cross-Validation to set lambda0}
+\title{Run Cross-Validation to Tune Lambda0}
 \usage{
 cv_risk_mod(
   X,
@@ -22,46 +22,59 @@ cv_risk_mod(
 )
 }
 \arguments{
-\item{X}{input matrix with dimension n x p, every row is an observation}
+\item{X}{Input covariate matrix with dimension \eqn{n \times p};
+every row is an observation.}
 
-\item{y}{numeric vector for the response variable (binomial)}
+\item{y}{Numeric vector for the (binomial) response variable.}
 
-\item{weights}{numeric vector of length n with weights for each
-observation (defult NULL - will give equal weights)}
+\item{weights}{Numeric vector of length \eqn{n} with weights for each
+observation. Unless otherwise specified, default will give equal weight to
+each observation.}
 
-\item{a}{integer lower bound for betas (default -10)}
+\item{a}{Integer lower bound for coefficients (default: -10).}
 
-\item{b}{integer upper bound for betas (default 10)}
+\item{b}{Integer upper bound for coefficients (default: 10).}
 
-\item{max_iters}{maximum number of iterations (default 100)}
+\item{max_iters}{Maximum number of iterations (default: 100).}
 
-\item{tol}{tolerance for convergence}
+\item{tol}{Tolerance for convergence (default: 1e-5).}
 
-\item{nlambda}{number of lambda values to try (default 10)}
+\item{nlambda}{Number of lambda values to try (default: 25).}
 
-\item{lambda_min_ratio}{smallest value for lambda, as a fraction of
-lambda_max, the (data derived) entry value (i.e. the smallest value
-for which all coefficients are zero). The default depends on the sample size
-(n) relative to the number of variables (p). If n > p, the default is 0.0001,
-close to zero.  If n < p, the default is 0.01.}
+\item{lambda_min_ratio}{Smallest value for lambda, as a fraction of
+lambda_max (the smallest value for which all coefficients are zero).
+The default depends on the sample size (\eqn{n}) relative to the number of
+variables (\eqn{p}). If \eqn{n > p}, the default is 0.0001, close to zero.
+If \eqn{n < p}, the default is 0.01.}
 
-\item{lambda0}{optional sequence of lambda values (default NULL)}
+\item{lambda0}{Optional sequence of lambda values. By default, the function
+will derive the lambda0 sequence based on the data (see \code{lambda_min_ratio}).}
 
-\item{nfolds}{number of folds, implied if foldids provided (default 10)}
+\item{nfolds}{Number of folds, implied if \code{foldids} provided (default: 10).}
 
-\item{foldids}{optional vector of values between 1 and nfolds (default NULL)}
+\item{foldids}{Optional vector of values between 1 and \code{nfolds}.}
 
-\item{parallel}{If \code{TRUE}, use parallel \code{foreach} to fit each fold.
-Must register parallel before hand, such as \code{doParallel} or others.}
+\item{parallel}{If \code{TRUE}, parallel processing (using \link{foreach}) is implemented
+during cross-validation to increase efficiency (default: \code{FALSE}).
+User must first register parallel backend with a function such as
+\link[doParallel:registerDoParallel]{doParallel::registerDoParallel}.}
 
-\item{seed}{An integer that is used as argument by the set.seed() for
-offsetting the random number generator. Default is to leave the random number
-generator alone.}
+\item{seed}{An integer that is used as argument by \code{set.seed()} for
+offsetting the random number generator. Default is to not set a particular
+randomization seed.}
 }
 \value{
-class of cv_risk_mod with a list containing a data.frame of results
-along with the lambda_min and lambda_1se
+An object of class "cv_risk_mod" with the following attributes:
+\item{results}{Dataframe containing a summary of deviance and accuracy for each
+value of \code{lambda0} (mean and SD). Also includes the number of nonzero
+coefficients that are produced by each \code{lambda0} when fit on the full data.}
+\item{lambda_min}{Numeric value indicating the \code{lambda0} that resulted in the
+lowest mean deviance.}
+\item{lambda_1se}{Numeric value indicating the largest \code{lamdba0} that
+had a mean deviance within one standard error of \code{lambda_min}.}
 }
 \description{
-Runs k-fold cross-validation and records class accuracy and deviance
+Runs k-fold cross-validation on a grid of \eqn{\lambda_0} values. Records
+class accuracy and deviance for each \eqn{\lambda_0}. Returns an object of
+class "cv_risk_mod".
 }

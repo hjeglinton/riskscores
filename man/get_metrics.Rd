@@ -7,22 +7,30 @@
 get_metrics(mod, X = NULL, y = NULL, weights = NULL)
 }
 \arguments{
-\item{mod}{an object of class \code{risk_mod}, usually a result of a call to \code{risk_mod()}}
+\item{mod}{An object of class \code{risk_mod}, usually a result of a call to
+\code{\link[=risk_mod]{risk_mod()}}.}
 
-\item{X}{input matrix with dimensions n x p, must match dimensions of beta
-in mod (default NULL)}
+\item{X}{Input covariate matrix with dimension \eqn{n \times p};
+every row is an observation.}
 
-\item{y}{numeric vector for the response variable (binomial) of length n,
-(default NULL)}
+\item{y}{Numeric vector for the (binomial) response variable.}
 
-\item{weights}{numeric vector of length n with weights for each
-observation (defult NULL - will give equal weights)}
+\item{weights}{Numeric vector of length \eqn{n} with weights for each
+observation. Unless otherwise specified, default will give equal weight to
+each observation.}
 }
 \value{
-list with deviance (dev), accuracy (acc), sensitivity (sens), and
-specificity (spec)
+List with deviance (dev), accuracy (acc), sensitivity (sens), and
+specificity (spec).
 }
 \description{
 Calculates a risk model's deviance, accuracy, sensitivity, and specificity
 given a set of data.
+}
+\examples{
+y <- breastcancer[[1]]
+X <- as.matrix(breastcancer[,2:ncol(breastcancer)])
+
+mod <- risk_mod(X, y)
+get_metrics(mod, X, y)
 }

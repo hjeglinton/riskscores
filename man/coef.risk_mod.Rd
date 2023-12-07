@@ -7,11 +7,22 @@
 \method{coef}{risk_mod}(object)
 }
 \arguments{
-\item{object}{an object of class "risk_mod", usually a result of a call to risk_mod()}
+\item{object}{An object of class "risk_mod", usually a result of a call to
+\code{\link[=risk_mod]{risk_mod()}}.}
 }
 \value{
-numeric vector with coefficients
+Numeric vector with coefficients.
 }
 \description{
-Extracts model coefficients (both nonzero and zero) from risk_mod object
+Extracts a vector of model coefficients (both nonzero and zero) from a
+"risk_mod" object. Equivalent to accessing the \code{beta} attribute of a
+"risk_mod" object.
+}
+\examples{
+y <- breastcancer[[1]]
+X <- as.matrix(breastcancer[,2:ncol(breastcancer)])
+
+mod <- risk_mod(X, y, lambda0 = 0.01)
+coef(mod)
+
 }

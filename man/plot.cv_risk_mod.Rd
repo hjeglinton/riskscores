@@ -2,19 +2,19 @@
 % Please edit documentation in R/generic.R
 \name{plot.cv_risk_mod}
 \alias{plot.cv_risk_mod}
-\title{Plot cross-validation results}
+\title{Plot Risk Score Cross-Validation Results}
 \usage{
 \method{plot}{cv_risk_mod}(x, ...)
 }
 \arguments{
-\item{x}{an object of class "cv_risk_mod", usually a result of a call to
-cv_risk_mod()}
+\item{x}{An object of class "cv_risk_mod", usually a result of a call to
+\code{\link[=cv_risk_mod]{cv_risk_mod()}}.}
 
-\item{...}{additional arguments affecting the plot produced}
+\item{...}{Additional arguments affecting the plot produced}
 }
 \value{
-ggplot object
+Object of class "ggplot".
 }
 \description{
-Plots the mean deviance for each lambda tested during cross-validation
+Plots the mean deviance for each \eqn{lambda_0} tested during cross-validation.
 }

@@ -1,30 +1,34 @@
-#' Cross-Validation to set lambda0
+#' Run Cross-Validation to Tune Lambda0
 #'
-#' Runs k-fold cross-validation and records class accuracy and deviance
-#' @param X input matrix with dimension n x p, every row is an observation
-#' @param y numeric vector for the response variable (binomial)
-#' @param weights numeric vector of length n with weights for each
-#' observation (defult NULL - will give equal weights)
-#' @param a integer lower bound for betas (default -10)
-#' @param b integer upper bound for betas (default 10)
-#' @param max_iters maximum number of iterations (default 100)
-#' @param tol tolerance for convergence
-#' @param nlambda number of lambda values to try (default 10)
-#' @param lambda_min_ratio smallest value for lambda, as a fraction of
-#' lambda_max, the (data derived) entry value (i.e. the smallest value
-#' for which all coefficients are zero). The default depends on the sample size
-#' (n) relative to the number of variables (p). If n > p, the default is 0.0001,
-#' close to zero.  If n < p, the default is 0.01.
-#' @param lambda0 optional sequence of lambda values (default NULL)
-#' @param nfolds number of folds, implied if foldids provided (default 10)
-#' @param foldids optional vector of values between 1 and nfolds (default NULL)
-#' @param parallel If \code{TRUE}, use parallel \code{foreach} to fit each fold.
-#' Must register parallel before hand, such as \code{doParallel} or others.
-#' @param seed An integer that is used as argument by the set.seed() for
-#' offsetting the random number generator. Default is to leave the random number
-#' generator alone.
-#' @return class of cv_risk_mod with a list containing a data.frame of results
-#' along with the lambda_min and lambda_1se
+#' Runs k-fold cross-validation on a grid of \eqn{\lambda_0} values. Records
+#'  class accuracy and deviance for each \eqn{\lambda_0}. Returns an object of
+#'  class "cv_risk_mod".
+#' @inheritParams risk_mod
+#' @param nlambda Number of lambda values to try (default: 25).
+#' @param lambda_min_ratio Smallest value for lambda, as a fraction of
+#'  lambda_max (the smallest value for which all coefficients are zero).
+#'  The default depends on the sample size (\eqn{n}) relative to the number of
+#'  variables (\eqn{p}). If \eqn{n > p}, the default is 0.0001, close to zero.
+#'  If \eqn{n < p}, the default is 0.01.
+#' @param lambda0 Optional sequence of lambda values. By default, the function
+#'  will derive the lambda0 sequence based on the data (see `lambda_min_ratio`).
+#' @param nfolds Number of folds, implied if `foldids` provided (default: 10).
+#' @param foldids Optional vector of values between 1 and `nfolds`.
+#' @param parallel If `TRUE`, parallel processing (using [foreach]) is implemented
+#'    during cross-validation to increase efficiency (default: `FALSE`).
+#'    User must first register parallel backend with a function such as
+#'    [doParallel::registerDoParallel].
+#' @param seed An integer that is used as argument by `set.seed()` for
+#'    offsetting the random number generator. Default is to not set a particular
+#'    randomization seed.
+#' @return An object of class "cv_risk_mod" with the following attributes:
+#'  \item{results}{Dataframe containing a summary of deviance and accuracy for each
+#'    value of `lambda0` (mean and SD). Also includes the number of nonzero
+#'    coefficients that are produced by each `lambda0` when fit on the full data.}
+#'  \item{lambda_min}{Numeric value indicating the `lambda0` that resulted in the
+#'    lowest mean deviance.}
+#'  \item{lambda_1se}{Numeric value indicating the largest `lamdba0` that
+#'    had a mean deviance within one standard error of `lambda_min`.}
 #' @importFrom foreach %dopar%
 #' @export
 cv_risk_mod <- function(X, y, weights = NULL, a = -10, b = 10, max_iters = 100,

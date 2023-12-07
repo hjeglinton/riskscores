@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{glm_fit_risk}
 \alias{glm_fit_risk}
-\title{Define method for converting to glm object}
+\title{Define Method for Converting to "glm" Object}
 \usage{
 glm_fit_risk(
   x,
@@ -19,39 +19,41 @@ glm_fit_risk(
 )
 }
 \arguments{
-\item{x}{input matrix with dimension n x p, every row is an observation.}
+\item{x}{Input covariate matrix with dimension \eqn{n \times p};
+every row is an observation.}
 
-\item{y}{numeric vector for the response variable (binomial).}
+\item{y}{Numeric vector for the (binomial) response variable.}
 
-\item{weights}{an optional vector of ‘prior weights’ to be used in the fitting
+\item{weights}{An optional vector of ‘prior weights’ to be used in the fitting
 process. Should be NULL or a numeric vector.}
 
-\item{start}{starting values for the parameters in the linear predictor.}
+\item{start}{Starting values for the parameters in the linear predictor.}
 
-\item{etastart}{starting values for the linear predictor.}
+\item{etastart}{Starting values for the linear predictor.}
 
-\item{mustart}{starting values for the vector of means.}
+\item{mustart}{Starting values for the vector of means.}
 
-\item{offset}{this can be used to specify an a priori known component to be
+\item{offset}{This can be used to specify an a priori known component to be
 included in the linear predictor during fitting. This should be NULL or a
 numeric vector of length equal to the number of cases. One or more \code{offset}
 terms can be included in the formula instead or as well, and if more than one
 is specified their sum is used.}
 
-\item{family}{a description of the error distribution and link function to be
+\item{family}{A description of the error distribution and link function to be
 used in the model. For glm this can be a character string naming a family
 function, a family function or the result of a call to a family function. For
 glm.fit only the third option is supported.}
 
-\item{control}{a list of parameters for controlling the fitting process.}
+\item{control}{A list of parameters for controlling the fitting process.}
 
-\item{intercept}{logical. Should an intercept be included in the null model?}
+\item{intercept}{Logical. Should an intercept be included in the null model?}
 
-\item{singular.ok}{logical; if FALSE a singular fit is an error.}
+\item{singular.ok}{Logical; if FALSE a singular fit is an error.}
 }
 \value{
-glm object
+Object of class "glm".
 }
 \description{
-Own glm.fit.own to keep coefficients provided - modified from glm's code.
+Creates the "glm_fit_risk" method that will be used to convert the risk score
+model to a "glm" object. Modified from \code{\link[=glm.fit]{glm.fit()}} code.
 }

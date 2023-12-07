@@ -2,33 +2,37 @@
 % Please edit documentation in R/risk_mod.R
 \name{bisec_search}
 \alias{bisec_search}
-\title{Bisection search for coordinate descent}
+\title{Run Bisection Search}
 \usage{
 bisec_search(X, y, gamma, beta, weights, j, lambda0 = 0, a = -10, b = 10)
 }
 \arguments{
-\item{X}{input matrix with dimension n x p, every row is an observation}
+\item{X}{Input covariate matrix with dimension \eqn{n \times p};
+every row is an observation.}
 
-\item{y}{numeric vector for the response variable (binomial)}
+\item{y}{Numeric vector for the (binomial) response variable.}
 
-\item{gamma}{scalar to rescale betas for prediction}
+\item{gamma}{Scalar to rescale coefficients for prediction.}
 
-\item{beta}{numeric vector with p coefficients}
+\item{beta}{Numeric vector with \eqn{p} coefficients.}
 
-\item{weights}{numeric vector of length n with weights for each
-observation}
+\item{weights}{Numeric vector of length \eqn{n} with weights for each
+observation. Unless otherwise specified, default will give equal weight to
+each observation.}
 
-\item{j}{index of beta}
+\item{j}{Index of \code{beta}.}
 
-\item{lambda0}{penalty coefficient for L0 term (default 0)}
+\item{lambda0}{Penalty coefficient for L0 term (default: 0).
+See \code{\link[=cv_risk_mod]{cv_risk_mod()}} for \code{lambda0} tuning.}
 
-\item{a}{integer lower bound for beta_j (default -10)}
+\item{a}{Integer lower bound for coefficients (default: -10).}
 
-\item{b}{integer upper bound for beta_j (default 10)}
+\item{b}{Integer upper bound for coefficients (default: 10).}
 }
 \value{
-numeric vector beta with optimal value for beta[j] updated
+Numeric vector \code{beta} with optimal value for \code{beta[j]} updated.
 }
 \description{
-Returns optimal value on beta_j using bisection search
+Returns optimal value on \code{beta[j]} using bisection search. For use in each
+iteration of the coordinate descent algorithm.
 }

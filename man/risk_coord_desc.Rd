@@ -2,7 +2,7 @@
 % Please edit documentation in R/risk_mod.R
 \name{risk_coord_desc}
 \alias{risk_coord_desc}
-\title{Coordinate descent to find the optimal risk model}
+\title{Run Coordinate Descent}
 \usage{
 risk_coord_desc(
   X,
@@ -18,30 +18,37 @@ risk_coord_desc(
 )
 }
 \arguments{
-\item{X}{input matrix with dimension n x p, every row is an observation}
+\item{X}{Input covariate matrix with dimension \eqn{n \times p};
+every row is an observation.}
 
-\item{y}{numeric vector for the response variable (binomial)}
+\item{y}{Numeric vector for the (binomial) response variable.}
 
-\item{gamma}{scalar to rescale betas for prediction}
+\item{gamma}{Scalar to rescale coefficients for prediction.}
 
-\item{beta}{numeric vector with p coefficients}
+\item{beta}{Numeric vector with \eqn{p} coefficients.}
 
-\item{weights}{numeric vector of length n with weights for each
-observation}
+\item{weights}{Numeric vector of length \eqn{n} with weights for each
+observation. Unless otherwise specified, default will give equal weight to
+each observation.}
 
-\item{lambda0}{penalty coefficient for L0 term (default 0)}
+\item{lambda0}{Penalty coefficient for L0 term (default: 0).
+See \code{\link[=cv_risk_mod]{cv_risk_mod()}} for \code{lambda0} tuning.}
 
-\item{a}{integer lower bound for betas (default -10)}
+\item{a}{Integer lower bound for coefficients (default: -10).}
 
-\item{b}{integer upper bound for betas (default 10)}
+\item{b}{Integer upper bound for coefficients (default: 10).}
 
-\item{max_iters}{maximum number of iterations (default 100)}
+\item{max_iters}{Maximum number of iterations (default: 100).}
 
-\item{tol}{tolerance for convergence}
+\item{tol}{Tolerance for convergence (default: 1e-5).}
 }
 \value{
-optimal gamma (numeric) and beta (numeric vector) as a list
+A list containing the optimal gamma (numeric) and
+beta (numeric vector).
 }
 \description{
-Returns the estimated gamma and beta for the risk score model
+Find the optimal risk score model through a coordinate descent algorithm.
+At each iteration, the algorithm updates the model intercept and scalar value
+(gamma) based on results from bisection search. Coordinate descent algorithm
+runs until it converges or reaches the maximum number of iterations.
 }

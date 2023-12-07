@@ -22,7 +22,8 @@ Imports:
 Suggests: 
     knitr,
     kableExtra,
-    rmarkdown
+    rmarkdown,
+    doParallel
 VignetteBuilder: knitr, kableExtra
 Depends: 
     R (>= 2.10)

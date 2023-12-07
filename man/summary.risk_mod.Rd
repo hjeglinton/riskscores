@@ -2,18 +2,28 @@
 % Please edit documentation in R/generic.R
 \name{summary.risk_mod}
 \alias{summary.risk_mod}
-\title{Summarize Risk Model Fits}
+\title{Summarize Risk Model Fit}
 \usage{
 \method{summary}{risk_mod}(object, ...)
 }
 \arguments{
-\item{object}{an object of class "risk_mod", usually a result of a call to risk_mod()}
+\item{object}{An object of class "risk_mod", usually a result of a call to
+\code{\link[=risk_mod]{risk_mod()}}.}
 
-\item{...}{additional arguments affecting the summary produced}
+\item{...}{Additional arguments affecting the summary produced.}
 }
 \value{
-text with intercept, nonzero coefficients, gamma, lambda, and deviance
+Printed text with intercept, nonzero coefficients, gamma, lambda,
+and deviance
 }
 \description{
-Prints text that summarizes risk_mod objects
+Prints text that summarizes "risk_mod" objects.
+}
+\examples{
+y <- breastcancer[[1]]
+X <- as.matrix(breastcancer[,2:ncol(breastcancer)])
+
+mod <- risk_mod(X, y, lambda0 = 0.01)
+summary(mod)
+
 }

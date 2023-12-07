@@ -1,9 +1,18 @@
-#' Summarize Risk Model Fits
+#' Summarize Risk Model Fit
 #'
-#' Prints text that summarizes risk_mod objects
-#' @param object an object of class "risk_mod", usually a result of a call to risk_mod()
-#' @param ... additional arguments affecting the summary produced
-#' @return text with intercept, nonzero coefficients, gamma, lambda, and deviance
+#' Prints text that summarizes "risk_mod" objects.
+#' @param object An object of class "risk_mod", usually a result of a call to
+#'  [risk_mod()].
+#' @param ... Additional arguments affecting the summary produced.
+#' @return Printed text with intercept, nonzero coefficients, gamma, lambda,
+#'  and deviance
+#' @examples
+#' y <- breastcancer[[1]]
+#' X <- as.matrix(breastcancer[,2:ncol(breastcancer)])
+#'
+#' mod <- risk_mod(X, y, lambda0 = 0.01)
+#' summary(mod)
+#'
 #' @export
 summary.risk_mod <- function(object, ...) {
 
@@ -29,36 +38,57 @@ summary.risk_mod <- function(object, ...) {
 
 #' Extract Model Coefficients
 #'
-#' Extracts model coefficients (both nonzero and zero) from risk_mod object
-#' @param object an object of class "risk_mod", usually a result of a call to risk_mod()
-#' @return numeric vector with coefficients
+#' Extracts a vector of model coefficients (both nonzero and zero) from a
+#'  "risk_mod" object. Equivalent to accessing the `beta` attribute of a
+#'  "risk_mod" object.
+#' @param object An object of class "risk_mod", usually a result of a call to
+#' [risk_mod()].
+#' @return Numeric vector with coefficients.
+#' @examples
+#' y <- breastcancer[[1]]
+#' X <- as.matrix(breastcancer[,2:ncol(breastcancer)])
+#'
+#' mod <- risk_mod(X, y, lambda0 = 0.01)
+#' coef(mod)
+#'
 #' @export
 coef.risk_mod <- function(object) {
 
-  names(object$beta)[1] <- "(Intercept)"
-  object$beta
+  return(object$beta)
 
 }
 
-#' Model Predictions
+
+#' Predict Method for Risk Model Fits
 #'
-#' Obtains predictions from a risk score model object.
-#' @param object an object of class "risk_mod", usually a result of a call to
-#' risk_mod()
-#' @param newx matrix of new values for `x` at which predictions are to be made.
-#' @param type the type of prediction required. The default is on the scale of
-#' the linear predictors; the alternative "response is on the scale of the
-#' response variable. Thus for a risk score model, the default predictions are of
-#' log-odds (probabilities on logit scale) and type = "response" gives the
-#' predicted risk probabilities. The "score" option returns integer risk scores.
-#' @return array with predictions
+#' Obtains predictions from risk score models.
+#' @param object An object of class "risk_mod", usually a result of a call to
+#'  [risk_mod()].
+#' @param newx Optional matrix of new values for `X` for which predictions are
+#'  to be made. If ommited, the fitted values are used.
+#' @param type The type of prediction required. The default ("link") is on the
+#'  scale of the predictors (i.e. log-odds); the "response" type is on the scale
+#'  of the response variable (i.e. risk probabilities); the "score" type returns
+#'  the risk score calculated from the integer model.
+#' @return Numeric vector of predicted values.
+#' @examples
+#' y <- breastcancer[[1]]
+#' X <- as.matrix(breastcancer[,2:ncol(breastcancer)])
+#' mod <- risk_mod(X, y, lambda0 = 0.01)
+
+#' predict(mod, type = "link")[1]
+#' predict(mod, type = "response")[1]
+#' predict(mod, type = "score")[1]
 #' @export
 predict.risk_mod <- function(object, newx = NULL,
                              type = c("link", "response", "score")) {
 
   if (is.null(newx)) {
+
     X <- object$X
+
   } else {
+
     X <- newx
 
     # Add intercept column
@@ -91,13 +121,13 @@ predict.risk_mod <- function(object, newx = NULL,
 
 }
 
-#' Plot cross-validation results
+#' Plot Risk Score Cross-Validation Results
 #'
-#' Plots the mean deviance for each lambda tested during cross-validation
-#' @param x an object of class "cv_risk_mod", usually a result of a call to
-#' cv_risk_mod()
-#' @param ... additional arguments affecting the plot produced
-#' @return ggplot object
+#' Plots the mean deviance for each \eqn{lambda_0} tested during cross-validation.
+#' @param x An object of class "cv_risk_mod", usually a result of a call to
+#' [cv_risk_mod()].
+#' @param ... Additional arguments affecting the plot produced
+#' @return Object of class "ggplot".
 #' @export
 plot.cv_risk_mod <- function(x, ...) {
 
@@ -139,17 +169,24 @@ plot.cv_risk_mod <- function(x, ...) {
   return(cv_plot)
 }
 
-#' Plots the logistic regression curve of the risk score model
+#' Plot Risk Score Model Curve
 #'
-#' Line plot with scores on the x-axis and risk on the y-axis.
-#' @param x an object of class "risk_mod", usually a result of a call to
-#' risk_mod()
-#' @param score_min the minimum score displayed on the x-axis. The default is the
+#' Plots the linear regression equation associated with the integer risk score
+#'  model. Plots the scores on the x-axis and risk on the y-axis.
+#' @param x An object of class "risk_mod", usually a result of a call to
+#' [risk_mod()].
+#' @param score_min The minimum score displayed on the x-axis. The default is the
 #' minimum score predicted from model's training data.
-#' @param score_max the maximum score displayed on the x-axis. The default is the
+#' @param score_max The maximum score displayed on the x-axis. The default is the
 #' maximum score predicted from model's training data.
-#' @param ... additional arguments affecting the plot produced
-#' @return ggplot object
+#' @param ... Additional arguments affecting the plot produced
+#' @return Object of class "ggplot".
+#' @examples
+#' y <- breastcancer[[1]]
+#' X <- as.matrix(breastcancer[,2:ncol(breastcancer)])
+#' mod <- risk_mod(X, y, lambda0 = 0.01)
+#'
+#'plot(mod)
 #' @export
 plot.risk_mod <- function(x, score_min = NULL, score_max = NULL, ...) {
 

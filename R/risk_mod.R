@@ -1,14 +1,8 @@
-#' Partial derivative of the negative log-likelihood
+#' Partial Derivative of the Negative Log-Likelihood
 #'
-#' Calculates the partial derivative for beta_j of the objective function
-#' @param X input matrix with dimension n x p, every row is an observation
-#' @param y numeric vector for the response variable (binomial)
-#' @param gamma scalar to rescale betas for prediction
-#' @param beta numeric vector with p coefficients
-#' @param weights numeric vector of length n with weights for each
-#' observation
-#' @param j index of beta
-#' @return the numeric partial derivative value
+#' Calculates the partial derivative of the objective function for `beta[j]`.
+#' @inheritParams bisec_search
+#' @return Numeric partial derivative value.
 par_deriv <- function(X, y, gamma, beta, weights, j) {
 
   # Calculate partial derivative for NLL
@@ -20,17 +14,11 @@ par_deriv <- function(X, y, gamma, beta, weights, j) {
   return(nll_pd)
 }
 
-#' Objective function for NLL+penalty
+#' Objective Function for NLL+Penalty
 #'
-#' Calculates the objective function for gamma, beta (NLL+penalty)
-#' @param X input matrix with dimension n x p, every row is an observation
-#' @param y numeric vector for the response variable (binomial)
-#' @param gamma scalar to rescale betas for prediction
-#' @param beta numeric vector with p coefficients
-#' @param weights numeric vector of length n with weights for each
-#' observation
-#' @param lambda0 penalty coefficient for L0 term (default 0)
-#' @return numeric objective function value
+#' Calculates the objective function for gamma, beta (NLL+penalty).
+#' @inheritParams risk_coord_desc
+#' @return Numeric objective function value.
 obj_fcn <- function(X, y, gamma, beta, weights, lambda0=0) {
 
   # Calculate partial derivative for NLL
@@ -43,20 +31,13 @@ obj_fcn <- function(X, y, gamma, beta, weights, lambda0=0) {
   return (nll_fcn + pen_fcn)
 }
 
-#' Bisection search for coordinate descent
+#' Run Bisection Search
 #'
-#' Returns optimal value on beta_j using bisection search
-#' @param X input matrix with dimension n x p, every row is an observation
-#' @param y numeric vector for the response variable (binomial)
-#' @param gamma scalar to rescale betas for prediction
-#' @param beta numeric vector with p coefficients
-#' @param weights numeric vector of length n with weights for each
-#' observation
-#' @param j index of beta
-#' @param lambda0 penalty coefficient for L0 term (default 0)
-#' @param a integer lower bound for beta_j (default -10)
-#' @param b integer upper bound for beta_j (default 10)
-#' @return numeric vector beta with optimal value for beta\[j\] updated
+#' Returns optimal value on `beta[j]` using bisection search. For use in each
+#'  iteration of the coordinate descent algorithm.
+#' @inheritParams risk_coord_desc
+#' @param j Index of `beta`.
+#' @return Numeric vector `beta` with optimal value for `beta[j]` updated.
 bisec_search <- function(X, y, gamma, beta, weights, j, lambda0 = 0,
                          a = -10, b = 10) {
 
@@ -115,15 +96,12 @@ bisec_search <- function(X, y, gamma, beta, weights, j, lambda0 = 0,
   return (beta_b)
 }
 
-#' Update gamma and beta\[1\]
+#' Update Gamma and Intercept
 #'
-#' Finds optimal gamma value and intercept
-#' @param X input matrix with dimension n x p, every row is an observation
-#' @param y numeric vector for the response variable (binomial)
-#' @param beta numeric vector with p coefficients
-#' @param weights numeric vector of length n with weights for each
-#' observation
-#' @return gamma and beta (with updated beta\[1\] value) in a list
+#' Finds optimal gamma value and intercept (`beta[1]`).
+#' @inheritParams risk_coord_desc
+#' @return  A list containing the optimal gamma (numeric) and
+#'  beta (numeric vector), with gamma and `beta[1]` updated.
 update_gamma_intercept <- function(X, y, beta, weights) {
 
   # Calculate current integer scores and run logistic regression
@@ -141,21 +119,17 @@ update_gamma_intercept <- function(X, y, beta, weights) {
   return (list(gamma=gamma, beta=beta))
 }
 
-#' Coordinate descent to find the optimal risk model
+#' Run Coordinate Descent
 #'
-#' Returns the estimated gamma and beta for the risk score model
-#' @param X input matrix with dimension n x p, every row is an observation
-#' @param y numeric vector for the response variable (binomial)
-#' @param gamma scalar to rescale betas for prediction
-#' @param beta numeric vector with p coefficients
-#' @param weights numeric vector of length n with weights for each
-#' observation
-#' @param lambda0 penalty coefficient for L0 term (default 0)
-#' @param a integer lower bound for betas (default -10)
-#' @param b integer upper bound for betas (default 10)
-#' @param max_iters maximum number of iterations (default 100)
-#' @param tol tolerance for convergence
-#' @return optimal gamma (numeric) and beta (numeric vector) as a list
+#' Find the optimal risk score model through a coordinate descent algorithm.
+#' At each iteration, the algorithm updates the model intercept and scalar value
+#' (gamma) based on results from bisection search. Coordinate descent algorithm
+#' runs until it converges or reaches the maximum number of iterations.
+#' @inheritParams risk_mod
+#' @param gamma Scalar to rescale coefficients for prediction.
+#' @param beta Numeric vector with \eqn{p} coefficients.
+#' @return A list containing the optimal gamma (numeric) and
+#'  beta (numeric vector).
 risk_coord_desc <- function(X, y, gamma, beta, weights, lambda0 = 0,
                             a = -10, b = 10, max_iters = 100, tol= 1e-5) {
 
@@ -204,12 +178,12 @@ risk_coord_desc <- function(X, y, gamma, beta, weights, lambda0 = 0,
 #'
 #'  \deqn{\min_{\alpha,\beta} \quad \frac{1}{n} \sum_{i=1}^{n} (\gamma y_i x_i^T \beta - log(1 + exp(\gamma x_i^T \beta))) + \lambda_0 \sum_{j=1}^{p} 1(\beta_{j} \neq 0)}
 #'
-#' The following constraints ensure that the model will be sparse and include
-#' only integer coefficients.
-#'
 #'  \deqn{l \le \beta_j \le u \; \; \; \forall j = 1,2,...,p}
 #'  \deqn{\beta_j \in \mathbb{Z} \; \; \; \forall j = 1,2,...,p }
 #'  \deqn{\beta_0, \gamma \in \mathbb{R}}
+#'
+#' These constraints ensure that the model will be sparse and include
+#' only integer coefficients.
 #'
 #' @param X Input covariate matrix with dimension \eqn{n \times p};
 #'  every row is an observation.
@@ -228,21 +202,20 @@ risk_coord_desc <- function(X, y, gamma, beta, weights, lambda0 = 0,
 #' @param max_iters Maximum number of iterations (default: 100).
 #' @param tol Tolerance for convergence (default: 1e-5).
 #' @return An object of class "risk_mod" with the following attributes:
-#'  * `gamma`: Final scalar value.
-#'  * `beta`: Vector of integer coefficients.
-#'  * `glm_mod`: Object of class "glm" with logistic regression model.
-#'    (see [stats::glm]).
-#'  * `X`: Input covariate matrix.
-#'  * `y`: Input response vector.
-#'  * `weights`: Input weights.
-#'  * `lambda0`: Imput `lambda0` value.
-#'  * `model_card`: Dataframe displaying the nonzero integer coefficients
-#'    (i.e. "points") of the risk score model.
-#'  * `score_map`: Dataframe containing a column of possible scores and a column
-#'    with each score's associated risk probability.
+#'  \item{gamma}{Final scalar value.}
+#'  \item{beta}{Vector of integer coefficients.}
+#'  \item{glm_mod}{Logistic regression object of class "glm" (see [stats::glm]).}
+#'  \item{X}{Input covariate matrix.}
+#'  \item{y}{Input response vector.}
+#'  \item{weights}{Input weights.}
+#'  \item{lambda0}{Imput `lambda0` value.}
+#'  \item{model_card}{Dataframe displaying the nonzero integer coefficients
+#'    (i.e. "points") of the risk score model.}
+#'  \item{score_map}{Dataframe containing a column of possible scores and a column
+#'    with each score's associated risk probability.}
 #' @examples
-#' X <- matrix(rnorm(100 * 20), 100, 20)
-#' y <- sample(c(0,1), 100, replace = TRUE)
+#' y <- breastcancer[[1]]
+#' X <- as.matrix(breastcancer[,2:ncol(breastcancer)])
 #'
 #' mod1 <- risk_mod(X, y)
 #' mod1$model_card
@@ -252,7 +225,6 @@ risk_coord_desc <- function(X, y, gamma, beta, weights, lambda0 = 0,
 #'
 #' mod3 <- risk_mod(X, y, lambda0 = 0.01, a = -5, b = 5)
 #' mod3$model_card
-#'
 #' @export
 risk_mod <- function(X, y, gamma = NULL, beta = NULL, weights = NULL,
                      lambda0 = 0, a = -10, b = 10, max_iters = 100, tol= 1e-5) {

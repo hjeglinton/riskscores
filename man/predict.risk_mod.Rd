@@ -2,25 +2,33 @@
 % Please edit documentation in R/generic.R
 \name{predict.risk_mod}
 \alias{predict.risk_mod}
-\title{Model Predictions}
+\title{Predict Method for Risk Model Fits}
 \usage{
 \method{predict}{risk_mod}(object, newx = NULL, type = c("link", "response", "score"))
 }
 \arguments{
-\item{object}{an object of class "risk_mod", usually a result of a call to
-risk_mod()}
+\item{object}{An object of class "risk_mod", usually a result of a call to
+\code{\link[=risk_mod]{risk_mod()}}.}
 
-\item{newx}{matrix of new values for \code{x} at which predictions are to be made.}
+\item{newx}{Optional matrix of new values for \code{X} for which predictions are
+to be made. If ommited, the fitted values are used.}
 
-\item{type}{the type of prediction required. The default is on the scale of
-the linear predictors; the alternative "response is on the scale of the
-response variable. Thus for a risk score model, the default predictions are of
-log-odds (probabilities on logit scale) and type = "response" gives the
-predicted risk probabilities. The "score" option returns integer risk scores.}
+\item{type}{The type of prediction required. The default ("link") is on the
+scale of the predictors (i.e. log-odds); the "response" type is on the scale
+of the response variable (i.e. risk probabilities); the "score" type returns
+the risk score calculated from the integer model.}
 }
 \value{
-array with predictions
+Numeric vector of predicted values.
 }
 \description{
-Obtains predictions from a risk score model object.
+Obtains predictions from risk score models.
+}
+\examples{
+y <- breastcancer[[1]]
+X <- as.matrix(breastcancer[,2:ncol(breastcancer)])
+mod <- risk_mod(X, y, lambda0 = 0.01)
+predict(mod, type = "link")[1]
+predict(mod, type = "response")[1]
+predict(mod, type = "score")[1]
 }

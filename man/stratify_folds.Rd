@@ -2,22 +2,27 @@
 % Please edit documentation in R/helpers.R
 \name{stratify_folds}
 \alias{stratify_folds}
-\title{Assign stratified fold ids}
+\title{Generate Stratified Fold IDs}
 \usage{
 stratify_folds(y, nfolds = 10, seed = NULL)
 }
 \arguments{
-\item{y}{numeric vector for the response variable (binomial)}
+\item{y}{Numeric vector for the (binomial) response variable.}
 
-\item{nfolds}{number of folds (default 10)}
+\item{nfolds}{Number of folds (default: 10).}
 
-\item{seed}{An integer that is used as argument by the set.seed() for
-offsetting the random number generator. Default is to leave the random number
-generator alone.}
+\item{seed}{An integer that is used as argument by \code{set.seed()} for
+offsetting the random number generator. Default is to not set a particular
+randomization seed.}
 }
 \value{
-vector with the same length as y
+Numeric vector with the same length as \code{y}.
 }
 \description{
-Returns a vector of fold ids with an equal percentage of samples for each class
+Returns a vector of fold IDs that preserves class proportions.
+}
+\examples{
+y <- rbinom(100, 1, 0.3)
+foldids <- stratify_folds(y, nfolds = 5)
+table(y, foldids)
 }

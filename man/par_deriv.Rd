@@ -2,27 +2,29 @@
 % Please edit documentation in R/risk_mod.R
 \name{par_deriv}
 \alias{par_deriv}
-\title{Partial derivative of the negative log-likelihood}
+\title{Partial Derivative of the Negative Log-Likelihood}
 \usage{
 par_deriv(X, y, gamma, beta, weights, j)
 }
 \arguments{
-\item{X}{input matrix with dimension n x p, every row is an observation}
+\item{X}{Input covariate matrix with dimension \eqn{n \times p};
+every row is an observation.}
 
-\item{y}{numeric vector for the response variable (binomial)}
+\item{y}{Numeric vector for the (binomial) response variable.}
 
-\item{gamma}{scalar to rescale betas for prediction}
+\item{gamma}{Scalar to rescale coefficients for prediction.}
 
-\item{beta}{numeric vector with p coefficients}
+\item{beta}{Numeric vector with \eqn{p} coefficients.}
 
-\item{weights}{numeric vector of length n with weights for each
-observation}
+\item{weights}{Numeric vector of length \eqn{n} with weights for each
+observation. Unless otherwise specified, default will give equal weight to
+each observation.}
 
-\item{j}{index of beta}
+\item{j}{Index of \code{beta}.}
 }
 \value{
-the numeric partial derivative value
+Numeric partial derivative value.
 }
 \description{
-Calculates the partial derivative for beta_j of the objective function
+Calculates the partial derivative of the objective function for \code{beta[j]}.
 }

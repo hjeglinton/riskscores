@@ -2,16 +2,16 @@
 % Please edit documentation in R/utils.R
 \name{clip_exp_vals}
 \alias{clip_exp_vals}
-\title{Clip values}
+\title{Clip Values}
 \usage{
 clip_exp_vals(x)
 }
 \arguments{
-\item{x}{numeric vector}
+\item{x}{Numeric vector.}
 }
 \value{
-x with all values between -709.78 and 709.78
+Input vector \code{x} with all values between -709.78 and 709.78.
 }
 \description{
-Clip values prior to exponentiation to avoid numeric errors
+Clip values prior to exponentiation to avoid numeric errors.
 }

@@ -1,37 +1,41 @@
-#' Clip values
+#' Clip Values
 #'
-#' Clip values prior to exponentiation to avoid numeric errors
-#' @param x numeric vector
-#' @return x with all values between -709.78 and 709.78
+#' Clip values prior to exponentiation to avoid numeric errors.
+#' @param x Numeric vector.
+#' @return Input vector `x` with all values between -709.78 and 709.78.
+#' @export
 clip_exp_vals <- function(x){
 
   return(pmax(pmin(x, 709.78), -709.78))
+
 }
 
 
-#' Define method for converting to glm object
+#' Define Method for Converting to "glm" Object
 #'
-#' Own glm.fit.own to keep coefficients provided - modified from glm's code.
-#' @param x input matrix with dimension n x p, every row is an observation.
-#' @param y numeric vector for the response variable (binomial).
-#' @param weights an optional vector of ‘prior weights’ to be used in the fitting
+#' Creates the "glm_fit_risk" method that will be used to convert the risk score
+#'  model to a "glm" object. Modified from [glm.fit()] code.
+#' @param x Input covariate matrix with dimension \eqn{n \times p};
+#'  every row is an observation.
+#' @param y Numeric vector for the (binomial) response variable.
+#' @param weights An optional vector of ‘prior weights’ to be used in the fitting
 #' process. Should be NULL or a numeric vector.
-#' @param start starting values for the parameters in the linear predictor.
-#' @param etastart starting values for the linear predictor.
-#' @param mustart starting values for the vector of means.
-#' @param offset this can be used to specify an a priori known component to be
+#' @param start Starting values for the parameters in the linear predictor.
+#' @param etastart Starting values for the linear predictor.
+#' @param mustart Starting values for the vector of means.
+#' @param offset This can be used to specify an a priori known component to be
 #' included in the linear predictor during fitting. This should be NULL or a
 #' numeric vector of length equal to the number of cases. One or more \code{offset}
 #' terms can be included in the formula instead or as well, and if more than one
 #' is specified their sum is used.
-#' @param family a description of the error distribution and link function to be
+#' @param family A description of the error distribution and link function to be
 #' used in the model. For glm this can be a character string naming a family
 #' function, a family function or the result of a call to a family function. For
 #' glm.fit only the third option is supported.
-#' @param control a list of parameters for controlling the fitting process.
-#' @param intercept logical. Should an intercept be included in the null model?
-#' @param singular.ok logical; if FALSE a singular fit is an error.
-#' @return glm object
+#' @param control A list of parameters for controlling the fitting process.
+#' @param intercept Logical. Should an intercept be included in the null model?
+#' @param singular.ok Logical; if FALSE a singular fit is an error.
+#' @return Object of class "glm".
 #' @useDynLib riskscores, .registration = TRUE
 glm_fit_risk <- function (x, y, weights = rep(1, nobs), start = NULL,
                           etastart = NULL, mustart = NULL, offset = rep(0, nobs),
@@ -63,7 +67,7 @@ glm_fit_risk <- function (x, y, weights = rep(1, nobs), start = NULL,
   validmu  <- unless.null(family$validmu,  function(mu) TRUE)
   eval(family$initialize)
 
-  # starting coeficients, eta, and mu
+  # starting coefficients, eta, and mu
   coef <- start
   eta <- offset + as.vector(if (NCOL(x) == 1L) x * start else x %*% start)
   mu <- linkinv(eta)

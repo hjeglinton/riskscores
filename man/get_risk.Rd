@@ -2,19 +2,27 @@
 % Please edit documentation in R/helpers.R
 \name{get_risk}
 \alias{get_risk}
-\title{Get risk from score}
+\title{Calculate Risk Probability from Score}
 \usage{
 get_risk(object, score)
 }
 \arguments{
-\item{object}{an object of class "risk_mod", usually a result of a call to
-risk_mod()}
+\item{object}{An object of class "risk_mod", usually a result of a call to
+\code{\link[=risk_mod]{risk_mod()}}.}
 
-\item{score}{numeric vector with score value(s)}
+\item{score}{Numeric vector with score value(s).}
 }
 \value{
-numeric vector with the same length as \code{score}
+Numeric vector with the same length as \code{score}.
 }
 \description{
-Returns the risk probabilities for the provided score values
+Returns the risk probabilities for the provided score value(s).
+}
+\examples{
+y <- breastcancer[[1]]
+X <- as.matrix(breastcancer[,2:ncol(breastcancer)])
+
+mod <- risk_mod(X, y)
+get_risk(mod, score = c(1, 10, 20))
+
 }

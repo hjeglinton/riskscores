@@ -2,15 +2,18 @@
 #'
 #' Calculates a risk model's deviance, accuracy, sensitivity, and specificity
 #' given a set of data.
-#' @param mod an object of class `risk_mod`, usually a result of a call to `risk_mod()`
-#' @param X input matrix with dimensions n x p, must match dimensions of beta
-#' in mod (default NULL)
-#' @param y numeric vector for the response variable (binomial) of length n,
-#' (default NULL)
-#' @param weights numeric vector of length n with weights for each
-#' observation (defult NULL - will give equal weights)
-#' @return list with deviance (dev), accuracy (acc), sensitivity (sens), and
-#' specificity (spec)
+#' @param mod An object of class `risk_mod`, usually a result of a call to
+#'  [risk_mod()].
+#' @inheritParams risk_mod
+#' @return List with deviance (dev), accuracy (acc), sensitivity (sens), and
+#'  specificity (spec).
+#' @examples
+#' y <- breastcancer[[1]]
+#' X <- as.matrix(breastcancer[,2:ncol(breastcancer)])
+#'
+#' mod <- risk_mod(X, y)
+#' get_metrics(mod, X, y)
+#' @export
 get_metrics <- function(mod, X = NULL, y = NULL, weights = NULL){
 
   # Check if new data
@@ -18,6 +21,11 @@ get_metrics <- function(mod, X = NULL, y = NULL, weights = NULL){
   if (is.null(X) & is.null(y)){
     X = mod$X
     y = mod$y
+  }
+
+  # Add intercept column
+  if (!all(X[,1] == rep(1, nrow(X)))) {
+    X <- cbind(rep(1, nrow(X)), X)
   }
 
   # Check compatibility
@@ -48,15 +56,16 @@ get_metrics <- function(mod, X = NULL, y = NULL, weights = NULL){
   return(list(dev = dev, acc=acc, sens=sens, spec=spec))
 }
 
-#' Assign stratified fold ids
+#' Generate Stratified Fold IDs
 #'
-#' Returns a vector of fold ids with an equal percentage of samples for each class
-#' @param y numeric vector for the response variable (binomial)
-#' @param nfolds number of folds (default 10)
-#' @param seed An integer that is used as argument by the set.seed() for
-#' offsetting the random number generator. Default is to leave the random number
-#' generator alone.
-#' @return vector with the same length as y
+#' Returns a vector of fold IDs that preserves class proportions.
+#' @inheritParams cv_risk_mod
+#' @param nfolds Number of folds (default: 10).
+#' @return Numeric vector with the same length as `y`.
+#' @examples
+#' y <- rbinom(100, 1, 0.3)
+#' foldids <- stratify_folds(y, nfolds = 5)
+#' table(y, foldids)
 #' @export
 stratify_folds <- function(y, nfolds = 10, seed = NULL) {
 
@@ -76,13 +85,20 @@ stratify_folds <- function(y, nfolds = 10, seed = NULL) {
   return(foldids)
 }
 
-#' Get risk from score
+#' Calculate Risk Probability from Score
 #'
-#' Returns the risk probabilities for the provided score values
-#' @param object an object of class "risk_mod", usually a result of a call to
-#' risk_mod()
-#' @param score numeric vector with score value(s)
-#' @return numeric vector with the same length as `score`
+#' Returns the risk probabilities for the provided score value(s).
+#' @param object An object of class "risk_mod", usually a result of a call to
+#' [risk_mod()].
+#' @param score Numeric vector with score value(s).
+#' @return Numeric vector with the same length as `score`.
+#' @examples
+#' y <- breastcancer[[1]]
+#' X <- as.matrix(breastcancer[,2:ncol(breastcancer)])
+#'
+#' mod <- risk_mod(X, y)
+#' get_risk(mod, score = c(1, 10, 20))
+#'
 #' @export
 get_risk <- function(object, score) {
 

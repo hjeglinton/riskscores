@@ -2,23 +2,26 @@
 % Please edit documentation in R/risk_mod.R
 \name{update_gamma_intercept}
 \alias{update_gamma_intercept}
-\title{Update gamma and beta[1]}
+\title{Update Gamma and Intercept}
 \usage{
 update_gamma_intercept(X, y, beta, weights)
 }
 \arguments{
-\item{X}{input matrix with dimension n x p, every row is an observation}
+\item{X}{Input covariate matrix with dimension \eqn{n \times p};
+every row is an observation.}
 
-\item{y}{numeric vector for the response variable (binomial)}
+\item{y}{Numeric vector for the (binomial) response variable.}
 
-\item{beta}{numeric vector with p coefficients}
+\item{beta}{Numeric vector with \eqn{p} coefficients.}
 
-\item{weights}{numeric vector of length n with weights for each
-observation}
+\item{weights}{Numeric vector of length \eqn{n} with weights for each
+observation. Unless otherwise specified, default will give equal weight to
+each observation.}
 }
 \value{
-gamma and beta (with updated beta[1] value) in a list
+A list containing the optimal gamma (numeric) and
+beta (numeric vector), with gamma and \code{beta[1]} updated.
 }
 \description{
-Finds optimal gamma value and intercept
+Finds optimal gamma value and intercept (\code{beta[1]}).
 }

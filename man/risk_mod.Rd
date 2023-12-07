@@ -46,20 +46,17 @@ See \code{\link[=cv_risk_mod]{cv_risk_mod()}} for \code{lambda0} tuning.}
 }
 \value{
 An object of class "risk_mod" with the following attributes:
-\itemize{
-\item \code{gamma}: Final scalar value.
-\item \code{beta}: Vector of integer coefficients.
-\item \code{glm_mod}: Object of class "glm" with logistic regression model.
-(see \link[stats:glm]{stats::glm}).
-\item \code{X}: Input covariate matrix.
-\item \code{y}: Input response vector.
-\item \code{weights}: Input weights.
-\item \code{lambda0}: Imput \code{lambda0} value.
-\item \code{model_card}: Dataframe displaying the nonzero integer coefficients
-(i.e. "points") of the risk score model.
-\item \code{score_map}: Dataframe containing a column of possible scores and a column
-with each score's associated risk probability.
-}
+\item{gamma}{Final scalar value.}
+\item{beta}{Vector of integer coefficients.}
+\item{glm_mod}{Logistic regression object of class "glm" (see \link[stats:glm]{stats::glm}).}
+\item{X}{Input covariate matrix.}
+\item{y}{Input response vector.}
+\item{weights}{Input weights.}
+\item{lambda0}{Imput \code{lambda0} value.}
+\item{model_card}{Dataframe displaying the nonzero integer coefficients
+(i.e. "points") of the risk score model.}
+\item{score_map}{Dataframe containing a column of possible scores and a column
+with each score's associated risk probability.}
 }
 \description{
 Fits an optimized integer risk score model using a cyclical coordinate descent
@@ -71,16 +68,16 @@ following optimization problem.
 
 \deqn{\min_{\alpha,\beta} \quad \frac{1}{n} \sum_{i=1}^{n} (\gamma y_i x_i^T \beta - log(1 + exp(\gamma x_i^T \beta))) + \lambda_0 \sum_{j=1}^{p} 1(\beta_{j} \neq 0)}
 
-The following constraints ensure that the model will be sparse and include
-only integer coefficients.
-
 \deqn{l \le \beta_j \le u \; \; \; \forall j = 1,2,...,p}
 \deqn{\beta_j \in \mathbb{Z} \; \; \; \forall j = 1,2,...,p }
 \deqn{\beta_0, \gamma \in \mathbb{R}}
+
+These constraints ensure that the model will be sparse and include
+only integer coefficients.
 }
 \examples{
-X <- matrix(rnorm(100 * 20), 100, 20)
-y <- sample(c(0,1), 100, replace = TRUE)
+y <- breastcancer[[1]]
+X <- as.matrix(breastcancer[,2:ncol(breastcancer)])
 
 mod1 <- risk_mod(X, y)
 mod1$model_card
@@ -90,5 +87,4 @@ mod2$model_card
 
 mod3 <- risk_mod(X, y, lambda0 = 0.01, a = -5, b = 5)
 mod3$model_card
-
 }
