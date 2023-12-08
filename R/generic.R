@@ -43,6 +43,7 @@ summary.risk_mod <- function(object, ...) {
 #'  "risk_mod" object.
 #' @param object An object of class "risk_mod", usually a result of a call to
 #' [risk_mod()].
+#' @param ... Additional arguments.
 #' @return Numeric vector with coefficients.
 #' @examples
 #' y <- breastcancer[[1]]
@@ -52,7 +53,7 @@ summary.risk_mod <- function(object, ...) {
 #' coef(mod)
 #'
 #' @export
-coef.risk_mod <- function(object) {
+coef.risk_mod <- function(object, ...) {
 
   return(object$beta)
 
@@ -70,6 +71,7 @@ coef.risk_mod <- function(object) {
 #'  scale of the predictors (i.e. log-odds); the "response" type is on the scale
 #'  of the response variable (i.e. risk probabilities); the "score" type returns
 #'  the risk score calculated from the integer model.
+#' @param ... Additional arguments.
 #' @return Numeric vector of predicted values.
 #' @examples
 #' y <- breastcancer[[1]]
@@ -81,7 +83,7 @@ coef.risk_mod <- function(object) {
 #' predict(mod, type = "score")[1]
 #' @export
 predict.risk_mod <- function(object, newx = NULL,
-                             type = c("link", "response", "score")) {
+                             type = c("link", "response", "score"), ...) {
 
   if (is.null(newx)) {
 

@@ -4,7 +4,7 @@
 \alias{predict.risk_mod}
 \title{Predict Method for Risk Model Fits}
 \usage{
-\method{predict}{risk_mod}(object, newx = NULL, type = c("link", "response", "score"))
+\method{predict}{risk_mod}(object, newx = NULL, type = c("link", "response", "score"), ...)
 }
 \arguments{
 \item{object}{An object of class "risk_mod", usually a result of a call to
@@ -17,6 +17,8 @@ to be made. If ommited, the fitted values are used.}
 scale of the predictors (i.e. log-odds); the "response" type is on the scale
 of the response variable (i.e. risk probabilities); the "score" type returns
 the risk score calculated from the integer model.}
+
+\item{...}{Additional arguments.}
 }
 \value{
 Numeric vector of predicted values.

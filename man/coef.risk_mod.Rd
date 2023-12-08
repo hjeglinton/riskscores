@@ -4,11 +4,13 @@
 \alias{coef.risk_mod}
 \title{Extract Model Coefficients}
 \usage{
-\method{coef}{risk_mod}(object)
+\method{coef}{risk_mod}(object, ...)
 }
 \arguments{
 \item{object}{An object of class "risk_mod", usually a result of a call to
 \code{\link[=risk_mod]{risk_mod()}}.}
+
+\item{...}{Additional arguments.}
 }
 \value{
 Numeric vector with coefficients.
