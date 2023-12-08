@@ -3,6 +3,7 @@
 #' Calculates the partial derivative of the objective function for `beta[j]`.
 #' @inheritParams bisec_search
 #' @return Numeric partial derivative value.
+#' @noRd
 par_deriv <- function(X, y, gamma, beta, weights, j) {
 
   # Calculate partial derivative for NLL
@@ -19,6 +20,7 @@ par_deriv <- function(X, y, gamma, beta, weights, j) {
 #' Calculates the objective function for gamma, beta (NLL+penalty).
 #' @inheritParams risk_coord_desc
 #' @return Numeric objective function value.
+#' @noRd
 obj_fcn <- function(X, y, gamma, beta, weights, lambda0=0) {
 
   # Calculate partial derivative for NLL
@@ -38,6 +40,7 @@ obj_fcn <- function(X, y, gamma, beta, weights, lambda0=0) {
 #' @inheritParams risk_coord_desc
 #' @param j Index of `beta`.
 #' @return Numeric vector `beta` with optimal value for `beta[j]` updated.
+#' @noRd
 bisec_search <- function(X, y, gamma, beta, weights, j, lambda0 = 0,
                          a = -10, b = 10) {
 
@@ -102,6 +105,7 @@ bisec_search <- function(X, y, gamma, beta, weights, j, lambda0 = 0,
 #' @inheritParams risk_coord_desc
 #' @return  A list containing the optimal gamma (numeric) and
 #'  beta (numeric vector), with gamma and `beta[1]` updated.
+#' @noRd
 update_gamma_intercept <- function(X, y, beta, weights) {
 
   # Calculate current integer scores and run logistic regression
@@ -130,6 +134,7 @@ update_gamma_intercept <- function(X, y, beta, weights) {
 #' @param beta Numeric vector with \eqn{p} coefficients.
 #' @return A list containing the optimal gamma (numeric) and
 #'  beta (numeric vector).
+#' @noRd
 risk_coord_desc <- function(X, y, gamma, beta, weights, lambda0 = 0,
                             a = -10, b = 10, max_iters = 100, tol= 1e-5) {
 

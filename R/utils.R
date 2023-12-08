@@ -3,6 +3,8 @@
 #' Clip values prior to exponentiation to avoid numeric errors.
 #' @param x Numeric vector.
 #' @return Input vector `x` with all values between -709.78 and 709.78.
+#' @examples
+#' clip_exp_vals(710)
 #' @export
 clip_exp_vals <- function(x){
 
@@ -37,6 +39,7 @@ clip_exp_vals <- function(x){
 #' @param singular.ok Logical; if FALSE a singular fit is an error.
 #' @return Object of class "glm".
 #' @useDynLib riskscores, .registration = TRUE
+#' @noRd
 glm_fit_risk <- function (x, y, weights = rep(1, nobs), start = NULL,
                           etastart = NULL, mustart = NULL, offset = rep(0, nobs),
                           family = stats::gaussian(), control = list(),

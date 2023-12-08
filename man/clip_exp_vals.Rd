@@ -15,3 +15,6 @@ Input vector \code{x} with all values between -709.78 and 709.78.
 \description{
 Clip values prior to exponentiation to avoid numeric errors.
 }
+\examples{
+clip_exp_vals(710)
+}
