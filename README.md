@@ -34,8 +34,7 @@ devtools::install_github("hjeglinton/riskscores")
 ## Example
 
 We’ll fit a risk score model to predict breast cancer from biopsy data.
-More details can be found in the package’s
-[vignette](doc/riskscores.html).
+More details can be found in the package’s vignette.
 
 ``` r
 library(riskscores)
