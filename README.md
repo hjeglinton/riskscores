@@ -28,7 +28,7 @@ You can install the development version of riskscores from
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("hjeglinton/riskscores")
+devtools::install_github("hjeglinton/riskscores", build_vignettes = TRUE)
 ```
 
 ## Example

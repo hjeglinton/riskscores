@@ -3,7 +3,7 @@ Title: Optimized Integer Risk Score Models
 Version: 0.0.0.9000
 Authors@R: c(
     person("Hannah", "Eglinton", , "eglintonh@gmail.com", role = c("aut", "cre"),
-    person("Alice", "Paul", , "alice_paul@brown.edu", role = c("aut", "cre"),
+    person("Alice", "Paul", , "alice_paul@brown.edu", role = c("aut", "cre", "cph"),
     person("Oscar", "Yan", , "yu_yan@brown.edu", role = "aut"))))
 Description: Implements an optimized approach to learning risk score models, where 
     sparsity and integer constraints are integrated into the model-fitting 
