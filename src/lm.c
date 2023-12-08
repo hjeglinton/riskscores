@@ -1,4 +1,7 @@
-/*  R : A Computer Language for Statistical Data Analysis
+/*
+ *  Modified from 'stats' package (r-source/src/library/stats/src/lm.c)
+ *
+ *  R : A Computer Language for Statistical Data Analysis
  *
  *  Copyright (C) 2012-2013  The R Core Team
  *

@@ -1,4 +1,6 @@
 /*
+ *  Modified from base R repository (r-source/src/include/R.h)
+ *
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 2000-2016 The R Core Team.
  *
@@ -29,9 +31,9 @@
 # ifndef __STDC_WANT_IEC_60559_FUNCS_EXT__
 #  define __STDC_WANT_IEC_60559_FUNCS_EXT__ 1
 # endif
-/* The C++ headers in Solaris Studio are strict C++98, and many 
-   packages fail because of not using e.g. std::round 
-   or using C99 functions such as snprintf. 
+/* The C++ headers in Solaris Studio are strict C++98, and many
+   packages fail because of not using e.g. std::round
+   or using C99 functions such as snprintf.
 */
 # ifdef __SUNPRO_CC
 #  define DO_NOT_USE_CXX_HEADERS
@@ -46,8 +48,8 @@
 #  include <stdio.h>  /* Used by ca 200 packages, but not in R itself */
 #  include <limits.h> /* for INT_MAX */
 #  include <math.h>
-# endif 
-/* 
+# endif
+/*
    math.h   is also included by R_ext/Arith.h, except in C++ code
    stddef.h is included by R_ext/Memory.h
    string.h is included by R_ext/RS.h

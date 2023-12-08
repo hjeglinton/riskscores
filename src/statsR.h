@@ -1,4 +1,6 @@
 /*
+ *  Modified from 'stats' package (r-source/src/library/stats/src/statsR.h)
+ *
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 2012   The R Core Team.
  *

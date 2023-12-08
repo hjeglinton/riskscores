@@ -1,4 +1,6 @@
 /*
+ *  Modified from base R repository (r-source/src/include/Rinternals.h)
+ *
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
  *  Copyright (C) 1999-2016   The R Core Team.

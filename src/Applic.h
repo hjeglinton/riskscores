@@ -1,4 +1,6 @@
 /*
+ *  Modified from base R repository (r-source/src/include/R_ext/Applic.h)
+ *
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1998-2015   The R Core Team
  *
