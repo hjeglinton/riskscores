@@ -9,7 +9,7 @@ Description: Implements an optimized approach to learning risk score models, whe
     sparsity and integer constraints are integrated into the model-fitting 
     process.
 URL: https://github.com/hjeglinton/riskscores
-License: GPL (>= 3) + file LICENSE
+License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
