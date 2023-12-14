@@ -34,7 +34,7 @@
 cv_risk_mod <- function(X, y, weights = NULL, a = -10, b = 10, max_iters = 100,
                         tol= 1e-5, nlambda = 25,
                         lambda_min_ratio = ifelse(nrow(X) < ncol(X), 0.01, 1e-04),
-                        lambda0 = NULL, nfolds = 10, foldids = NULL, parallel=F,
+                        lambda0 = NULL, nfolds = 10, foldids = NULL, parallel = FALSE,
                         seed = NULL) {
 
   # Set seed

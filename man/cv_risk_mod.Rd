@@ -17,7 +17,7 @@ cv_risk_mod(
   lambda0 = NULL,
   nfolds = 10,
   foldids = NULL,
-  parallel = F,
+  parallel = FALSE,
   seed = NULL
 )
 }
