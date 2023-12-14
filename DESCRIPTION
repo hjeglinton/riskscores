@@ -2,12 +2,21 @@ Package: riskscores
 Title: Optimized Integer Risk Score Models
 Version: 1.0.1
 Authors@R: c(
-    person("Hannah", "Eglinton", , "eglintonh@gmail.com", role = c("aut", "cre"),
-    person("Alice", "Paul", , "alice_paul@brown.edu", role = c("aut", "cre", "cph"),
-    person("Oscar", "Yan", , "yu_yan@brown.edu", role = "aut"))))
-Description: Implements an optimized approach to learning risk score models, where 
-    sparsity and integer constraints are integrated into the model-fitting 
-    process.
+    person("Hannah", "Eglinton", , "eglintonh@gmail.com", role = c("aut", "cre")),
+    person("Alice", "Paul", , "alice_paul@brown.edu", role = c("aut", "cph")),
+    person("Oscar", "Yan", , "yu_yan@brown.edu", role = "aut"),
+    person(given = "R Core Team", role = c("ctb", "cph"), 
+      comment = "Copyright holder of Rinternals.h, R.h, lm.c, Applic.h, statsR.h,
+      glm package"),
+    person(given = "Robert", family = "Gentleman", role = c("ctb", "cph"),
+      comment = "Author and copyright holder of Rinternals.h"),
+    person(given = "Ross", family = "Ihaka", role = c("ctb", "cph"),
+      comment = "Author and copyright holder of Rinternals.h"),
+    person(given = "Simon", family = "Davies", role = "ctb",
+      comment = "Author of glm.fit function (modified in cv_risk_mod.R)"),
+    person(given = "Thomas", family = "Lumley", role = "ctb",
+      comment = "Author of glm.fit function (modified in cv_risk_mod.R)"))
+Description: Implements an optimized approach to learning risk score models, where sparsity and integer constraints are integrated into the model-fitting process.
 URL: https://github.com/hjeglinton/riskscores
 License: GPL (>= 3)
 Encoding: UTF-8
