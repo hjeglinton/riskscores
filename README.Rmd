@@ -19,6 +19,8 @@ library(dplyr)
 # riskscores
 
 <!-- badges: start -->
+[![CRAN status](https://www.r-pkg.org/badges/version/riskscores)](https://CRAN.R-project.org/package=riskscores)
+
 <!-- badges: end -->
 
 Risk scores are sparse linear models that map an integer linear combination of covariates to the probability of an outcome occurring. Unlike regression models, risk score models consist of integer coefficients for often dichotomous variables. This allows risk score predictions to be easily computed by adding or subtracting a few small numbers. 

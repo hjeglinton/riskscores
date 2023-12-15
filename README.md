@@ -4,6 +4,10 @@
 # riskscores
 
 <!-- badges: start -->
+
+[![CRAN
+status](https://www.r-pkg.org/badges/version/riskscores)](https://CRAN.R-project.org/package=riskscores)
+
 <!-- badges: end -->
 
 Risk scores are sparse linear models that map an integer linear
