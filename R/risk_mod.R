@@ -235,6 +235,9 @@ risk_mod <- function(X, y, gamma = NULL, beta = NULL, weights = NULL,
                      lambda0 = 0, a = -10, b = 10, max_iters = 100, tol= 1e-5) {
 
 
+  # Check that X is a matrix
+  if (!is.matrix(X)) stop ("X must be a matrix")
+
   # Add intercept column
   if (!all(X[,1] == rep(1, nrow(X)))) {
     X <- cbind(rep(1, nrow(X)), X)

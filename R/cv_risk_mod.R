@@ -42,6 +42,9 @@ cv_risk_mod <- function(X, y, weights = NULL, a = -10, b = 10, max_iters = 100,
     set.seed(seed)
   }
 
+  # Check that X is a matrix
+  if (!is.matrix(X)) stop ("X must be a matrix")
+
   # Add intercept column
   if (!all(X[,1] == rep(1, nrow(X)))) {
     X <- cbind(rep(1, nrow(X)), X)
@@ -57,6 +60,9 @@ cv_risk_mod <- function(X, y, weights = NULL, a = -10, b = 10, max_iters = 100,
 
   # Check at least 3 folds
   if (nfolds <= 3) stop("Must have more than 3 folds")
+
+  # Check no numeric issues
+  if (length(y) != nrow(X)) stop("y and X non-compatible")
 
   # Get lambda sequence
   if (is.null(lambda0)){
