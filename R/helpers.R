@@ -43,6 +43,7 @@ get_metrics <- function(mod, X = NULL, y = NULL, weights = NULL){
   p[p == 0] <- 1e-10
   p[p == 1] <- 1 - 1e-10
   dev <- -2*sum(y*log(p)+(1-y)*log(1-p))
+  print(dev)
 
   # Confusion matrix
   tp <- sum(pred == 1 & y == 1)
