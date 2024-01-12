@@ -40,8 +40,6 @@ get_metrics <- function(mod, X = NULL, y = NULL, weights = NULL){
   pred <- ifelse(p>=0.5, 1, 0)
 
   # Deviance
-  p[p == 0] <- 0.00001
-  p[p == 1] <- 0.99999
   dev <- -2*sum(y*log(p)+(1-y)*log(1-p))
 
   # Confusion matrix
