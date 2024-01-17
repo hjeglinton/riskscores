@@ -88,26 +88,33 @@ predict.risk_mod <- function(object, newx = NULL,
   if (is.null(newx)) {
 
     X <- object$X
+    beta <- object$beta
 
   } else {
 
     X <- newx
+    beta <- object$beta
 
     # Add intercept column
     if (!all(X[,1] == rep(1, nrow(X)))) {
       X <- cbind(rep(1, nrow(X)), X)
     }
+
+    # Select variables with nonzero coefficients (if not all variables included)
+    if (ncol(X) != ncol(object$X)) {
+
+      beta <- object$beta[object$beta != 0]
+      X <- X[,c(1, which(dimnames(X)[[2]] %in% names(beta)))]
+
+      if (!all(names(beta)[-1] %in% dimnames(X)[[2]][-1])) {
+        stop(paste0("newx must contain all non-zero covariates (",
+                    paste(names(beta)[-1], collapse = ", "), ")"))
+
+      }
+    }
   }
 
-  # Remove non-zero coefficients
-  beta_new <- object$beta[object$beta != 0]
-  X_new <- X[,c(1, which(dimnames(X)[[2]] %in% names(beta_new)))]
-
-  if (!all(names(beta_new)[-1] %in% dimnames(X_new)[[2]][-1])) {
-    stop(paste0("newx must contain all non-zero covariates (", paste(names(beta_new)[-1], collapse = ", "), ")"))
-  }
-
-  v <- object$gamma * X_new %*% beta_new
+  v <- object$gamma * X %*% beta
   v <- clip_exp_vals(v)
   p <- exp(v)/(1+exp(v))
 
