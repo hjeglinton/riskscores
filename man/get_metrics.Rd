@@ -4,7 +4,14 @@
 \alias{get_metrics}
 \title{Get Model Metrics}
 \usage{
-get_metrics(mod, X = NULL, y = NULL, weights = NULL)
+get_metrics(
+  mod,
+  X = NULL,
+  y = NULL,
+  weights = NULL,
+  threshold = 0.5,
+  threshold_type = c("response", "score")
+)
 }
 \arguments{
 \item{mod}{An object of class \code{risk_mod}, usually a result of a call to
