@@ -155,12 +155,19 @@ mod$score_map %>%
 ```
 
 
-The function `get_risk()` can be used to calculate the risk from a given score (or a vector of scores). 
+The function `get_risk()` can be used to calculate the risk from a given score (or a vector of scores). Likewise, the function `get_score()` calculates the score associated with a given risk (or vector of risk probabilities). 
 
 ```{r}
 get_risk(mod, score = 125)
+
+get_score(mod, risk = 0.7788)
 ```
 
+We can evaluate the model's performance under different classification thresholds using the `get_metrics()` function. 
+
+```{r}
+get_metrics(mod, threshold = seq(0.1, 0.9, 0.1))
+```
 
 
 

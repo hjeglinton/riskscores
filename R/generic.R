@@ -17,7 +17,6 @@
 summary.risk_mod <- function(object, ...) {
 
   coef <- object$beta
-  res_metrics <- get_metrics(object)
 
   cat("\nIntercept: ", coef[1], "\n", sep = "")
   cat("\n")

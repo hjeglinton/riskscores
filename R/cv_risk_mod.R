@@ -96,7 +96,7 @@ cv_risk_mod <- function(X, y, weights = NULL, a = -10, b = 10, max_iters = 100,
     mod <- risk_mod(X_train, y_train, gamma = NULL, beta = NULL,
                     weights = weight_train, lambda0 = l0, a = a, b = b,
                     max_iters = max_iters, tol= 1e-5)
-    res <- get_metrics(mod, X[foldids == foldid,], y[foldids == foldid])
+    res <- get_metrics_internal(mod, X[foldids == foldid,], y[foldids == foldid])
     non_zeros <- sum(mod$beta != 0)
     return(c(res$dev, res$acc, non_zeros))
   }

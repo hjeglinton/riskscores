@@ -1,78 +1,118 @@
 #' Get Model Metrics
 #'
-#' Calculates a risk model's deviance, accuracy, sensitivity, and specificity
+#' Calculates a risk model's accuracy, sensitivity, and specificity
 #' given a set of data.
 #' @param mod An object of class `risk_mod`, usually a result of a call to
 #'  [risk_mod()].
+#' @param threshold Numeric vector of classification threshold values used to
+#'  calculate the accuracy, sensitivity, and specificity of the model. Defaults
+#'  to a range of risk probability thresholds from 0.1 to 0.9 by 0.1.
+#' @param threshold_type Defines whether the `threshold` vector contains
+#'  risk probability values ("response") or threshold values expressed as scores
+#'  from the risk score model ("score"). Default: "response".
 #' @inheritParams risk_mod
-#' @return List with deviance (dev), accuracy (acc), sensitivity (sens), and
-#'  specificity (spec).
+#' @return Data frame with accuracy, sensitivity, and specificity for each threshold.
 #' @examples
 #' y <- breastcancer[[1]]
 #' X <- as.matrix(breastcancer[,2:ncol(breastcancer)])
 #'
 #' mod <- risk_mod(X, y)
 #' get_metrics(mod, X, y)
+#'
+#' get_metrics(mod, X, y, threshold = c(150, 175, 200), threshold_type = "score")
 #' @export
 get_metrics <- function(mod, X = NULL, y = NULL, weights = NULL,
-                        threshold = 0.50, threshold_type = c("response", "score")){
+                        threshold = NULL, threshold_type = c("response", "score")) {
 
   threshold_type <- match.arg(threshold_type)
 
-  # Check threshold value against type
-  if (!is.null(threshold) & threshold_type == "response") {
-    if (threshold < 0 | threshold > 1) stop("threshold must be between 0 and 1 when threshold_type = 'response'")
-  } else if (!is.null(threshold) & threshold_type == "score") {
-    if(threshold > 0 & threshold < 1) warning("Threshold input is being interpreted as a score but it may be a probability. Use `threshold_type = 'response'` to interpret input as a probability.")
+  if (is.null(threshold)) {
+    threshold <- seq(0.1, 0.9, 0.1)
+    threshold_type <- "response"
   }
 
-  # Check if new data
-  if (is.null(X)+is.null(y) == 1) stop("Must provide both X and y")
-  if (is.null(X) & is.null(y)){
-    X = mod$X
-    y = mod$y
+  metrics <- data.frame(threshold_risk = threshold,
+                        threshold_score = threshold,
+                        accuracy = rep(NA, length(threshold)),
+                        sensitivity = rep(NA, length(threshold)),
+                        specificity = rep(NA, length(threshold)))
+
+  for (i in 1:length(threshold)) {
+
+    res <- get_metrics_internal(mod, X, y, weights, threshold[i], threshold_type)
+    metrics[i,] <- c(threshold[i], threshold[i], res$acc, res$sens, res$spec)
+
   }
 
-  # Add intercept column
-  if (!all(X[,1] == rep(1, nrow(X)))) {
-    X <- cbind(rep(1, nrow(X)), X)
+  if (threshold_type == "score") {
+    metrics$threshold_risk <- round(get_risk(mod, metrics$threshold_score),3)
+  } else if (threshold_type == "response") {
+    metrics$threshold_score <- round(get_score(mod, metrics$threshold_risk),1)
   }
 
-  # Check compatibility
-  if (nrow(X) != length(y)) stop("X and y must match in number of observations")
-  if (ncol(X) != length(mod$beta)) stop("X is incompatible with the model")
-  if (sum(! (y %in% c(0,1)))) stop("y must be 0/1 valued")
+  return(metrics)
 
-  # Define threshold
-  if (threshold_type == "response") {
-    prob_cutoff <- threshold
-  } else if (threshold_type == "score") {
-    prob_cutoff <- get_risk(mod, threshold)
-  }
+}
 
-  # Get predicted probs and classes
-  v <- mod$gamma * X %*% mod$beta
-  v <- clip_exp_vals(v)
-  p <- exp(v)/(1+exp(v))
-  pred <- ifelse(p >= prob_cutoff, 1, 0)
+#' Calculate Risk Probability from Score
+#'
+#' Returns the risk probabilities for the provided score value(s).
+#' @param object An object of class "risk_mod", usually a result of a call to
+#'  [risk_mod()].
+#' @param score Numeric vector with score value(s).
+#' @return Numeric vector with the same length as `score`.
+#' @examples
+#' y <- breastcancer[[1]]
+#' X <- as.matrix(breastcancer[,2:ncol(breastcancer)])
+#'
+#' mod <- risk_mod(X, y)
+#' get_risk(mod, score = c(1, 10, 20))
+#'
+#' @export
+get_risk <- function(object, score) {
 
-  # Deviance
-  p[p == 1] <- 0.99999
-  p[p == 0] <- 0.00001
-  dev <- -2*sum(y*log(p)+(1-y)*log(1-p))
+  # Check that object is "risk_mod"
+  if (!inherits(object, "risk_mod"))
+    stop("'object' must be of class 'risk_mod'")
 
-  # Confusion matrix
-  tp <- sum(pred == 1 & y == 1)
-  tn <- sum(pred == 0 & y == 0)
-  fp <- sum(pred == 1 & y == 0)
-  fn <- sum(pred == 0 & y == 1)
+  risk <- exp(object$gamma*(object$beta[[1]] + score))/
+    (1+exp(object$gamma*(object$beta[[1]] + score)))
 
-  # Accuracy values
-  acc <- (tp+tn)/(tp+tn+fp+fn)
-  sens <- tp/(tp+fn)
-  spec <- tn/(tn+fp)
+  return(risk)
 
-  return(list(dev = dev, acc=acc, sens=sens, spec=spec))
+}
+
+#' Calculate Score from Risk Probability
+#'
+#' Returns the score(s) for the provided risk probabilities.
+#' @param object An object of class "risk_mod", usually a result of a call to
+#'  [risk_mod()].
+#' @param risk Numeric vector with probability value(s).
+#' @return Numeric vector with the same length as `risk`.
+#' @examples
+#' y <- breastcancer[[1]]
+#' X <- as.matrix(breastcancer[,2:ncol(breastcancer)])
+#'
+#' mod <- risk_mod(X, y)
+#' get_score(mod, risk = c(0.25, 0.50, 0.75))
+#'
+#' @export
+get_score <- function(object, risk) {
+
+  # Check that object is "risk_mod"
+  if (!inherits(object, "risk_mod"))
+    stop("'object' must be of class 'risk_mod'")
+
+  # Check that risk is between 0 and 1
+  if (any(risk <=0) | any(risk >= 1))
+    stop("'risk' must contain values between 0 and 1")
+
+  logit_p <- log(risk/(1-risk))
+
+  score <- (1/object$gamma) * logit_p - object$beta[[1]]
+
+  return(score)
+
 }
 
 #' Generate Stratified Fold IDs
@@ -112,34 +152,5 @@ stratify_folds <- function(y, nfolds = 10, seed = NULL) {
   foldids[index_y1] <- folds_y1
 
   return(foldids)
-}
-
-#' Calculate Risk Probability from Score
-#'
-#' Returns the risk probabilities for the provided score value(s).
-#' @param object An object of class "risk_mod", usually a result of a call to
-#'  [risk_mod()].
-#' @param score Numeric vector with score value(s).
-#' @return Numeric vector with the same length as `score`.
-#' @examples
-#' y <- breastcancer[[1]]
-#' X <- as.matrix(breastcancer[,2:ncol(breastcancer)])
-#'
-#' mod <- risk_mod(X, y)
-#' get_risk(mod, score = c(1, 10, 20))
-#'
-#' @export
-get_risk <- function(object, score) {
-
-  # Check that object is "risk_mod"
-  if (!inherits(object, "risk_mod"))
-    stop("'object' must be of class 'risk_mod'")
-
-  risk <- exp(object$gamma*(object$beta[[1]] + score))/
-    (1+exp(object$gamma*(object$beta[[1]] + score)))
-
-  return(risk)
 
 }
-
-
