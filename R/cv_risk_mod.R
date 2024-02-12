@@ -64,6 +64,9 @@ cv_risk_mod <- function(X, y, weights = NULL, a = -10, b = 10, max_iters = 100,
   # Check no numeric issues
   if (length(y) != nrow(X)) stop("y and X non-compatible")
 
+  # Check that outcome is 0/1
+  if (!all(sort(unique(y)) == c(0,1))) stop ("y must contain values of 0 and 1")
+
   # Get lambda sequence
   if (is.null(lambda0)){
     sd_n <- function(y) sqrt(sum((y-mean(y))^2)/length(y))
