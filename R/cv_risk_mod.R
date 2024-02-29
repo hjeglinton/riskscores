@@ -124,7 +124,7 @@ cv_risk_mod <- function(X, y, weights = NULL, a = -10, b = 10, max_iters = 100,
 
   # Summarize
   dev = acc = NULL # set global variables
-  res_df <- res_df %>%
+  res_df_summary <- res_df %>%
     dplyr::group_by(lambda0) %>%
     dplyr::summarize(mean_dev = mean(dev), sd_dev = stats::sd(dev),
               mean_acc = mean(acc), sd_acc = stats::sd(acc))
@@ -135,20 +135,20 @@ cv_risk_mod <- function(X, y, weights = NULL, a = -10, b = 10, max_iters = 100,
                     weights = weights, lambda0 = l0, a = a, b = b,
                     max_iters = max_iters, tol= 1e-5)
     non_zeros <- sum(mod$beta[-1] != 0)
-    return(non_zeros)
+    return(c(non_zeros))
   }
 
-  res_df$nonzero <- sapply(1:nrow(res_df),
-                           function(i) full_fcn(res_df$lambda0[i]))
+  res_df_summary$nonzero <- sapply(1:nrow(res_df_summary),
+                           function(i) full_fcn(res_df_summary$lambda0[i]))
 
   # Find lambda_min and lambda1_se for deviance
-  lambda_min_ind <- which.min(res_df$mean_dev)
-  lambda_min <- res_df$lambda0[lambda_min_ind]
-  min_dev_1se <- res_df$mean_dev[lambda_min_ind] +
-    res_df$sd_dev[lambda_min_ind]
-  lambda_1se <- res_df$lambda0[max(which(res_df$mean_dev <= min_dev_1se))]
+  lambda_min_ind <- which.min(res_df_summary$mean_dev)
+  lambda_min <- res_df_summary$lambda0[lambda_min_ind]
+  min_dev_1se <- res_df_summary$mean_dev[lambda_min_ind] +
+    res_df_summary$sd_dev[lambda_min_ind]
+  lambda_1se <- res_df_summary$lambda0[max(which(res_df_summary$mean_dev <= min_dev_1se))]
 
-  cv_obj <- list(results = res_df, lambda_min = lambda_min,
+  cv_obj <- list(results = res_df_summary, lambda_min = lambda_min,
                  lambda_1se =lambda_1se)
   class(cv_obj) <- "cv_risk_mod"
   return(cv_obj)
