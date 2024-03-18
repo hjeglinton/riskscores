@@ -18,9 +18,6 @@
 #'    during cross-validation to increase efficiency (default: `FALSE`).
 #'    User must first register parallel backend with a function such as
 #'    [doParallel::registerDoParallel].
-#' @param seed An integer that is used as argument by `set.seed()` for
-#'    offsetting the random number generator. Default is to not set a particular
-#'    randomization seed.
 #' @return An object of class "cv_risk_mod" with the following attributes:
 #'  \item{results}{Dataframe containing a summary of deviance and accuracy for each
 #'    value of `lambda0` (mean and SD). Also includes the number of nonzero
@@ -31,8 +28,8 @@
 #'    had a mean deviance within one standard error of `lambda_min`.}
 #' @importFrom foreach %dopar%
 #' @export
-cv_risk_mod <- function(X, y, weights = NULL, a = -10, b = 10, max_iters = 100,
-                        tol= 1e-5, nlambda = 25,
+cv_risk_mod <- function(X, y, weights = NULL, beta = NULL, a = -10, b = 10,
+                        max_iters = 100, tol= 1e-5, nlambda = 25,
                         lambda_min_ratio = ifelse(nrow(X) < ncol(X), 0.01, 1e-04),
                         lambda0 = NULL, nfolds = 10, foldids = NULL, parallel = FALSE,
                         seed = NULL) {
@@ -75,13 +72,14 @@ cv_risk_mod <- function(X, y, weights = NULL, a = -10, b = 10, max_iters = 100,
     X_scaled <- as.matrix(X_scaled, ncol = ncol(X[,-1]), nrow = nrow(X[,-1]))
     y_weighted <- ifelse(y==0, -mean(y == 1), mean(y == 0))
 
-    lambda_max <- max(abs(colSums(X_scaled*y_weighted)))/length(y_weighted)
+    lambda_max <- max(abs(colSums(X_scaled*y_weighted)), na.rm = TRUE)/length(y_weighted)
     lambda0 <- exp(seq(log(lambda_max), log(lambda_max * lambda_min_ratio),
                        length.out=nlambda))
   }
 
   num_lambda0 <- length(lambda0)
   if (num_lambda0 < 2) stop("Need at least two values for lambda0")
+
 
   # Results data frame
   res_df <- data.frame(lambda0 = rep(lambda0, nfolds),
@@ -93,10 +91,12 @@ cv_risk_mod <- function(X, y, weights = NULL, a = -10, b = 10, max_iters = 100,
 
   # Function to run for single fold and lambda0
   fold_fcn <- function(l0, foldid){
+
     X_train <- X[foldids != foldid, ]
     y_train <- y[foldids != foldid]
     weight_train <- weights[foldids != foldid]
-    mod <- risk_mod(X_train, y_train, gamma = NULL, beta = NULL,
+
+    mod <- risk_mod(X_train, y_train, gamma = NULL, beta = beta,
                     weights = weight_train, lambda0 = l0, a = a, b = b,
                     max_iters = max_iters, tol= 1e-5)
     res <- get_metrics_internal(mod, X[foldids == foldid,], y[foldids == foldid])
@@ -113,10 +113,10 @@ cv_risk_mod <- function(X, y, weights = NULL, a = -10, b = 10, max_iters = 100,
       {
         fold_fcn(res_df[i,1],res_df[i,2])
       }
-    res_df[,3:5] <- t(sapply(1:nrow(res_df), function(i) res_df[i,3:5] <- outlist[[i]]))
+    res_df[,3:5] <- base::t(sapply(1:nrow(res_df), function(i) res_df[i,3:5] <- outlist[[i]]))
   } else {
 
-    res_df[,3:5] <- t(sapply(1:nrow(res_df),
+    res_df[,3:5] <- base::t(sapply(1:nrow(res_df),
                              function(i) fold_fcn(res_df$lambda0[i],
                                                   res_df$fold[i])))
   }
