@@ -12,8 +12,8 @@ stratify_folds(y, nfolds = 10, seed = NULL)
 \item{nfolds}{Number of folds (default: 10).}
 
 \item{seed}{An integer that is used as argument by \code{set.seed()} for
-offsetting the random number generator. Default is to not set a particular
-randomization seed.}
+offsetting the random number generator. Default is to not set a
+particular randomization seed.}
 }
 \value{
 Numeric vector with the same length as \code{y}.

@@ -8,6 +8,7 @@ cv_risk_mod(
   X,
   y,
   weights = NULL,
+  beta = NULL,
   a = -10,
   b = 10,
   max_iters = 100,
@@ -30,6 +31,10 @@ every row is an observation.}
 \item{weights}{Numeric vector of length \eqn{n} with weights for each
 observation. Unless otherwise specified, default will give equal weight to
 each observation.}
+
+\item{beta}{Starting numeric vector with \eqn{p} coefficients.
+Default starting coefficients are rounded coefficients from a
+logistic regression model.}
 
 \item{a}{Integer lower bound for coefficients (default: -10).}
 
@@ -60,8 +65,8 @@ User must first register parallel backend with a function such as
 \link[doParallel:registerDoParallel]{doParallel::registerDoParallel}.}
 
 \item{seed}{An integer that is used as argument by \code{set.seed()} for
-offsetting the random number generator. Default is to not set a particular
-randomization seed.}
+offsetting the random number generator. Default is to not set a
+particular randomization seed.}
 }
 \value{
 An object of class "cv_risk_mod" with the following attributes:
