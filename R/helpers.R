@@ -154,3 +154,46 @@ stratify_folds <- function(y, nfolds = 10, seed = NULL) {
   return(foldids)
 
 }
+
+#' Run risk model with random start
+#'
+#' Runs `nstart` iterations of `risk_mod()`, each with a different
+#' warm start, and selects the best model. Each coefficient start is
+#' randomly selected as -1, 0, or 1.
+#' @inheritParams risk_mod
+#' @param nstart Number of different random starts to try
+#' (default: 5).
+#' @export
+risk_mod_random_start <- function(X, y, weights = NULL,
+                                  lambda0 = 0, a = -10, b = 10, max_iters = 100, tol= 1e-5,
+                                  seed = NULL, nstart = 5) {
+  # Set seed
+  if (!is.null(seed)) {
+    set.seed(seed)
+  }
+
+  # Initialize best model and objective function value
+  best_mod <- NULL
+  best_objective <- 99999999
+
+  for (i in 1:nstart) {
+
+    # Randomly choose coefficient values
+    beta <- sample(c(-1,0,1), ncol(X), replace = TRUE)
+
+    # Run risk_mod
+    mod <- risk_mod(X, y, gamma = NULL, beta = beta, weights = weights,
+                    lambda0 = lambda0, a = a, b = b, max_iters = max_iters,
+                    tol = tol)
+
+    # Calculate objective function
+    objective <- obj_fcn(X, y, gamma = mod$gamma, beta = mod$beta, weights = mod$weights, lambda0 = mod$lambda0)
+
+    # Save model if lowest objective value
+    if (objective < best_objective) {
+      best_mod <- mod
+      best_dev <- objective
+    }
+  }
+  return(best_mod)
+}
