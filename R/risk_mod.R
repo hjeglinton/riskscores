@@ -145,8 +145,11 @@ risk_coord_desc <- function(X, y, gamma, beta, weights, lambda0 = 0,
     # Keep track of old value to check convergence
     old_beta <- beta
 
+    # Shuffle order of variables
+    variable_index <- sample(2:ncol(X), length(2:ncol(X)), replace = FALSE)
+
     # Iterate through all variables and update intercept/gamma after each
-    for (j in (2:ncol(X))){
+    for (j in variable_index){
       beta <- bisec_search(X, y, gamma, beta, weights, j, lambda0, a, b)
       upd <- update_gamma_intercept(X, y, beta, weights)
       gamma <- upd$gamma
@@ -206,6 +209,9 @@ risk_coord_desc <- function(X, y, gamma, beta, weights, lambda0 = 0,
 #' @param b Integer upper bound for coefficients (default: 10).
 #' @param max_iters Maximum number of iterations (default: 100).
 #' @param tol Tolerance for convergence (default: 1e-5).
+#' @param seed An integer that is used as argument by `set.seed()` for
+#'    offsetting the random number generator. Default is to not set a
+#'    particular randomization seed.
 #' @return An object of class "risk_mod" with the following attributes:
 #'  \item{gamma}{Final scalar value.}
 #'  \item{beta}{Vector of integer coefficients.}
@@ -232,8 +238,13 @@ risk_coord_desc <- function(X, y, gamma, beta, weights, lambda0 = 0,
 #' mod3$model_card
 #' @export
 risk_mod <- function(X, y, gamma = NULL, beta = NULL, weights = NULL,
-                     lambda0 = 0, a = -10, b = 10, max_iters = 100, tol= 1e-5) {
+                     lambda0 = 0, a = -10, b = 10, max_iters = 100, tol= 1e-5,
+                     seed = NULL) {
 
+  # Set seed
+  if (!is.null(seed)) {
+    set.seed(seed)
+  }
 
   # Check that X is a matrix
   if (!is.matrix(X)) stop ("X must be a matrix")
@@ -243,9 +254,20 @@ risk_mod <- function(X, y, gamma = NULL, beta = NULL, weights = NULL,
     X <- cbind(rep(1, nrow(X)), X)
   }
 
+  # Convert beta to integers within range
+  if (any(!(beta%%1==0)) | any(beta < a) | any(beta > b)) {
+    if (max(abs(beta[-1])) == 0) {
+      scalar <- 1
+    } else {
+      scalar <- max(abs(beta[-1]))/min(abs(a + 0.5), abs(b + 0.5))
+    }
+    beta <- beta/scalar
+    beta[-1] <- round(beta[-1])
+  }
+
   # Weights
-  if (is.null(weights))
-    weights <- rep(1, nrow(X))
+  if (is.null(weights)) {
+    weights <- rep(1, nrow(X))}
 
   # If initial gamma is null but have betas then use update function
   if (is.null(gamma) & (!is.null(beta))){
@@ -265,10 +287,11 @@ risk_mod <- function(X, y, gamma = NULL, beta = NULL, weights = NULL,
     coef_vals[is.na(coef_vals)] <- 0
 
     # Round so betas within range
-    gamma <- min(abs(a), abs(b))/max(abs(coef_vals[-1]))
-    beta <- coef_vals*gamma
+    gamma <- max(abs(coef_vals[-1]))/min(abs(a + 0.5), abs(b + 0.5))
+    beta <- coef_vals/gamma
     beta[-1] <- round(beta[-1])
   }
+
 
   # Check no numeric issues
   if (is.nan(gamma) | sum(is.nan(beta)) > 0){
@@ -288,7 +311,7 @@ risk_mod <- function(X, y, gamma = NULL, beta = NULL, weights = NULL,
 
   # Convert to GLM object
   glm_mod <- stats::glm(y~.-1, family = "binomial", weights = weights,
-                 start = gamma*beta, method=glm_fit_risk, data = df)
+                 start = gamma*beta, method=glm_fit_risk, data = data.frame(X, y))
   names(beta) <- names(stats::coef(glm_mod))
   names(beta)[1] <- "(Intercept)"
 
