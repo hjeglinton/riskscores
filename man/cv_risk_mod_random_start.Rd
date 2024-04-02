@@ -8,7 +8,6 @@ cv_risk_mod_random_start(
   X,
   y,
   weights = NULL,
-  beta = NULL,
   a = -10,
   b = 10,
   max_iters = 100,
@@ -32,10 +31,6 @@ every row is an observation.}
 \item{weights}{Numeric vector of length \eqn{n} with weights for each
 observation. Unless otherwise specified, default will give equal weight to
 each observation.}
-
-\item{beta}{Starting numeric vector with \eqn{p} coefficients.
-Default starting coefficients are rounded coefficients from a
-logistic regression model.}
 
 \item{a}{Integer lower bound for coefficients (default: -10).}
 
@@ -74,7 +69,7 @@ particular randomization seed.}
 }
 \description{
 Runs k-fold cross-validation on a grid of \eqn{\lambda_0} values
-using random warm starts (see \link\link{risk_mod_random_start}. Records
+using random warm starts (see \link{risk_mod_random_start}. Records
 class accuracy and deviance for each \eqn{\lambda_0}. Returns an
 object of class "cv_risk_mod".
 }

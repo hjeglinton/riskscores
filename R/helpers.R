@@ -203,7 +203,7 @@ risk_mod_random_start <- function(X, y, weights = NULL,
 #' Run Cross-Validation to Tune Lambda0 with Random Start
 #'
 #' Runs k-fold cross-validation on a grid of \eqn{\lambda_0} values
-#'  using random warm starts (see \link[risk_mod_random_start]. Records
+#'  using random warm starts (see \link{risk_mod_random_start}. Records
 #'  class accuracy and deviance for each \eqn{\lambda_0}. Returns an
 #'  object of class "cv_risk_mod".
 #' @inheritParams cv_risk_mod
@@ -211,7 +211,7 @@ risk_mod_random_start <- function(X, y, weights = NULL,
 #' (default: 5).
 #' @importFrom foreach %dopar%
 #' @export
-cv_risk_mod_random_start <- function(X, y, weights = NULL, beta = NULL, a = -10, b = 10,
+cv_risk_mod_random_start <- function(X, y, weights = NULL, a = -10, b = 10,
                         max_iters = 100, tol= 1e-5, nlambda = 25,
                         lambda_min_ratio = ifelse(nrow(X) < ncol(X), 0.01, 1e-04),
                         lambda0 = NULL, nfolds = 10, foldids = NULL, parallel = FALSE,
@@ -279,7 +279,7 @@ cv_risk_mod_random_start <- function(X, y, weights = NULL, beta = NULL, a = -10,
     y_train <- y[foldids != foldid]
     weight_train <- weights[foldids != foldid]
 
-    mod <- risk_mod_random_start(X_train, y_train, gamma = NULL, beta = beta,
+    mod <- risk_mod_random_start(X_train, y_train,
                     weights = weight_train, lambda0 = l0, a = a, b = b,
                     max_iters = max_iters, tol= 1e-5)
     res <- get_metrics_internal(mod, X[foldids == foldid,], y[foldids == foldid])

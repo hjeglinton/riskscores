@@ -19,6 +19,8 @@ library(dplyr)
 library(ggplot2)
 library(magrittr)
 
+set.seed(1)
+
 ```
 
 
@@ -79,8 +81,8 @@ The `breastcancer` dataset is mostly ready to go. We'll still need to split out 
  
 
 ```{r}
-y <- breastcancer[[1]]
-X <- as.matrix(breastcancer[,2:ncol(breastcancer)])
+y <- breastcancer[,1]
+X <- as.matrix(breastcancer[,-1])
 
 ```
 
@@ -136,7 +138,7 @@ mod <- risk_mod(X, y, lambda0 = cv_results$lambda_1se)
 
 ```
 
-The integer risk score model can be viewed by calling `mod$model_card`. An individual's risk score can be calculated by multiplying each covariate response by its respective number of points and then adding all points together. In our example below, a patient with a ClumpThickness value of 1, a BareNuclei value of 5, and a BlandChromatin value of 10 would receive a score of $10(1) + 7(5) + 8(10) = 125$.
+The integer risk score model can be viewed by calling `mod$model_card`. An individual's risk score can be calculated by multiplying each covariate response by its respective number of points and then adding all points together. In our example below, a patient with a ClumpThickness value of 1, a UniformityOfCellShape value of 10, and a BareNuclei value of 5 would receive a score of $10(1) + 8(10) + 7(5) = 125$.
 
 ```{r, echo = FALSE}
 mod$model_card %>%
@@ -144,7 +146,7 @@ mod$model_card %>%
 ```
 
 
-Each score can then be mapped to a risk probability. The `mod$score_map` dataframe maps an integer range of scores to their associated risk. For this example dataset, `mod$score_map` includes a range of integer scores from 25 to 250, which are the minimum and maximum scores predicted from the training data. The table below shows a sample of these scores mapped to their associated risk. We can see that a patient who received a score of 125 would have a 77.9% risk of their tissue sample being malignant.  
+Each score can then be mapped to a risk probability. The `mod$score_map` dataframe maps an integer range of scores to their associated risk. For this example dataset, `mod$score_map` includes a range of integer scores from 25 to 200, which are the minimum and maximum scores predicted from the training data. The table below shows a sample of these scores mapped to their associated risk. We can see that a patient who received a score of 125 would have a 77.65% risk of their tissue sample being malignant.  
 
 
 
@@ -160,7 +162,7 @@ The function `get_risk()` can be used to calculate the risk from a given score (
 ```{r}
 get_risk(mod, score = 125)
 
-get_score(mod, risk = 0.7788)
+get_score(mod, risk = 0.7765)
 ```
 
 We can evaluate the model's performance under different classification thresholds using the `get_metrics()` function. 
@@ -219,7 +221,7 @@ coef(mod$glm_mod)
 Running `predict()` on a `risk_mod` object allows for three types of prediction, as the `type` parameter can be set to either `'link'`, `'response'`, or  `'score'`. These first two options are the same as when `predict()` is run on a logistic `glm` object. The added `'score'` option returns each subject's score, as calculated from the integer coefficients in the risk score model. 
 
 
-The table below compares the three possible prediction types for five example subjects. The first three columns contain data for clump thickness, bare nuclei, and bland chromatin, respectively. 
+The table below compares the three possible prediction types for five example subjects. The first three columns contain data for clump thickness, uniformity of cell shape, and bare nuclei, respectively. 
 
 ```{r, echo = FALSE}
 
@@ -231,12 +233,12 @@ response <- predict(mod, type = "response")[1:5] %>%
 score <- predict(mod, type = "score")[1:5]
 
 data.frame(X[1:5,which(dimnames(X)[[2]] %in% c("ClumpThickness",
-                                             "BareNuclei",
-                                             "BlandChromatin"))],
+                                             "UniformityOfCellShape",
+                                             "BareNuclei"))],
                        score, link, response) %>%
   kable("html",
         booktabs = T,
-        col.names = c("CT","BN", "BC", 
+        col.names = c("CT","UCS", "BN", 
                      "'score'", "'link'", "'response'"),
         caption = "Comparison of `predict()` outputs") %>%
   kable_styling("striped", full_width = F) %>%
@@ -246,12 +248,12 @@ data.frame(X[1:5,which(dimnames(X)[[2]] %in% c("ClumpThickness",
 
 The 'score' is a linear combination of the covariates and their integer coefficients: 
 
-- $\text{score} = 10(\text{CT}) + 7(\text{BN}) + 8(\text{BC})$
+- $\text{score} = 10(\text{CT}) + 8(\text{UCS}) + 7(\text{BN})$
 
 
 The 'link' is a linear combination of the covariates using the full logistic regression equation:
 
-- $\text{link} = -9.54 + 0.86(\text{CT}) + 0.61(\text{BN}) + 0.69(\text{BC})$
+- $\text{link} = -8.56 + 0.78(\text{CT}) + 0.63(\text{UCS}) + 0.55(\text{BN})$
 
 The 'response' converts these link values to probabilities: 
 

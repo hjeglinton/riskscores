@@ -32,7 +32,7 @@ cv_risk_mod <- function(X, y, weights = NULL, beta = NULL, a = -10, b = 10,
                         max_iters = 100, tol= 1e-5, nlambda = 25,
                         lambda_min_ratio = ifelse(nrow(X) < ncol(X), 0.01, 1e-04),
                         lambda0 = NULL, nfolds = 10, foldids = NULL, parallel = FALSE,
-                        seed = NULL) {
+                        shuffle = TRUE, seed = NULL) {
 
   # Set seed
   if (!is.null(seed)) {
@@ -98,7 +98,7 @@ cv_risk_mod <- function(X, y, weights = NULL, beta = NULL, a = -10, b = 10,
 
     mod <- risk_mod(X_train, y_train, gamma = NULL, beta = beta,
                     weights = weight_train, lambda0 = l0, a = a, b = b,
-                    max_iters = max_iters, tol= 1e-5)
+                    max_iters = max_iters, tol= 1e-5, shuffle = shuffle)
     res <- get_metrics_internal(mod, X[foldids == foldid,], y[foldids == foldid])
     non_zeros <- sum(mod$beta != 0)
     return(c(res$dev, res$acc, non_zeros))
@@ -133,7 +133,7 @@ cv_risk_mod <- function(X, y, weights = NULL, beta = NULL, a = -10, b = 10,
   full_fcn <- function(l0) {
     mod <- risk_mod(X, y,  gamma = NULL, beta = NULL,
                     weights = weights, lambda0 = l0, a = a, b = b,
-                    max_iters = max_iters, tol= 1e-5)
+                    max_iters = max_iters, tol= 1e-5, shuffle = FALSE)
     non_zeros <- sum(mod$beta[-1] != 0)
     return(c(non_zeros))
   }

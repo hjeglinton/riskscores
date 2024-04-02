@@ -19,6 +19,7 @@ cv_risk_mod(
   nfolds = 10,
   foldids = NULL,
   parallel = FALSE,
+  shuffle = TRUE,
   seed = NULL
 )
 }
@@ -63,6 +64,9 @@ will derive the lambda0 sequence based on the data (see \code{lambda_min_ratio})
 during cross-validation to increase efficiency (default: \code{FALSE}).
 User must first register parallel backend with a function such as
 \link[doParallel:registerDoParallel]{doParallel::registerDoParallel}.}
+
+\item{shuffle}{Whether order of coefficients is shuffled during coordinate
+descent (default: TRUE).}
 
 \item{seed}{An integer that is used as argument by \code{set.seed()} for
 offsetting the random number generator. Default is to not set a

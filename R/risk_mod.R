@@ -136,7 +136,8 @@ update_gamma_intercept <- function(X, y, beta, weights) {
 #'  beta (numeric vector).
 #' @noRd
 risk_coord_desc <- function(X, y, gamma, beta, weights, lambda0 = 0,
-                            a = -10, b = 10, max_iters = 100, tol= 1e-5) {
+                            a = -10, b = 10, max_iters = 100, tol= 1e-5,
+                            shuffle = TRUE) {
 
   # Run for maximum number of iterations
   iters <- 1
@@ -146,7 +147,11 @@ risk_coord_desc <- function(X, y, gamma, beta, weights, lambda0 = 0,
     old_beta <- beta
 
     # Shuffle order of variables
-    variable_index <- sample(2:ncol(X), length(2:ncol(X)), replace = FALSE)
+    if (shuffle == TRUE) {
+      variable_index <- sample(2:ncol(X), length(2:ncol(X)), replace = FALSE)
+    } else {
+      variable_index <- 2:ncol(X)
+    }
 
     # Iterate through all variables and update intercept/gamma after each
     for (j in variable_index){
@@ -209,6 +214,8 @@ risk_coord_desc <- function(X, y, gamma, beta, weights, lambda0 = 0,
 #' @param b Integer upper bound for coefficients (default: 10).
 #' @param max_iters Maximum number of iterations (default: 100).
 #' @param tol Tolerance for convergence (default: 1e-5).
+#' @param shuffle Whether order of coefficients is shuffled during coordinate
+#' descent (default: TRUE).
 #' @param seed An integer that is used as argument by `set.seed()` for
 #'    offsetting the random number generator. Default is to not set a
 #'    particular randomization seed.
@@ -239,7 +246,7 @@ risk_coord_desc <- function(X, y, gamma, beta, weights, lambda0 = 0,
 #' @export
 risk_mod <- function(X, y, gamma = NULL, beta = NULL, weights = NULL,
                      lambda0 = 0, a = -10, b = 10, max_iters = 100, tol= 1e-5,
-                     seed = NULL) {
+                     shuffle = TRUE, seed = NULL) {
 
   # Set seed
   if (!is.null(seed)) {
@@ -305,7 +312,7 @@ risk_mod <- function(X, y, gamma = NULL, beta = NULL, weights = NULL,
 
   # Run coordinate descent from initial solution
   res <- risk_coord_desc(X, y, gamma, beta, weights, lambda0, a, b, max_iters,
-                         tol)
+                         tol, shuffle)
   gamma <- res$gamma
   beta <- res$beta
 
