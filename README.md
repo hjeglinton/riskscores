@@ -44,8 +44,8 @@ More details can be found in the package’s vignette.
 library(riskscores)
 
 # Prepare data
-y <- breastcancer[[1]]
-X <- as.matrix(breastcancer[,2:ncol(breastcancer)])
+y <- breastcancer[,1]
+X <- as.matrix(breastcancer[,-1])
 
 # Fit risk score model 
 mod <- risk_mod(X, y, lambda0 = 0.058)
