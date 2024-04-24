@@ -38,7 +38,6 @@ clip_exp_vals <- function(x){
 #' @param intercept Logical. Should an intercept be included in the null model?
 #' @param singular.ok Logical; if FALSE a singular fit is an error.
 #' @return Object of class "glm".
-#' @useDynLib riskscores, .registration = TRUE
 #' @noRd
 glm_fit_risk <- function (x, y, weights = rep(1, nobs), start = NULL,
                           etastart = NULL, mustart = NULL, offset = rep(0, nobs),
@@ -84,26 +83,8 @@ glm_fit_risk <- function (x, y, weights = rep(1, nobs), start = NULL,
   z <- (eta - offset)[good] + (y - mu)[good]/mu.eta.val[good]
   w <- sqrt((weights[good] * mu.eta.val[good]^2)/variance(mu)[good])
 
-  # call Fortran code via C wrapper
-  fit <- .Call("Cdqrls", x[good, , drop = FALSE] * w, z * w,
-               min(1e-7, control$epsilon/1000), check=FALSE)
-  xxnames <- xnames[fit$pivot]
-
-  # r matrix
   residuals <-  (y - mu)/mu.eta(eta)
-  fit$qr <- as.matrix(fit$qr)
-  nr <- min(sum(good), nvars)
-  if (nr < nvars) {
-    Rmat <- diag(nvars)
-    Rmat[1L:nr, 1L:nvars] <- fit$qr[1L:nr, 1L:nvars]
-  }
-  else Rmat <- fit$qr[1L:nvars, 1L:nvars]
-
-  Rmat <- as.matrix(Rmat)
-  Rmat[row(Rmat) > col(Rmat)] <- 0
   names(coef) <- xnames
-  colnames(fit$qr) <- xxnames
-  dimnames(Rmat) <- list(xxnames, xxnames)
 
   names(residuals) <- ynames
   names(mu) <- ynames
@@ -115,9 +96,6 @@ glm_fit_risk <- function (x, y, weights = rep(1, nobs), start = NULL,
   names(wt) <- ynames
   names(weights) <- ynames
   names(y) <- ynames
-  if(!EMPTY)
-    names(fit$effects) <-
-    c(xxnames[seq_len(fit$rank)], rep.int("", sum(good) - fit$rank))
 
   ## calculate null deviance -- corrected in glm() if offset and intercept
   wtdmu <-
@@ -127,7 +105,7 @@ glm_fit_risk <- function (x, y, weights = rep(1, nobs), start = NULL,
   ## calculate df
   n.ok <- nobs - sum(weights==0)
   nulldf <- n.ok - as.integer(intercept)
-  rank <- if(EMPTY) 0 else fit$rank
+  rank <- dim(x)[2]
   resdf  <- n.ok - rank
 
   ## calculate AIC
@@ -135,12 +113,15 @@ glm_fit_risk <- function (x, y, weights = rep(1, nobs), start = NULL,
 
   # return list
   list(coefficients = coef, residuals = residuals, fitted.values = mu,
-       effects = if(!EMPTY) fit$effects, R = if(!EMPTY) Rmat, rank = rank,
-       qr = if(!EMPTY) structure(fit[c("qr", "rank", "qraux", "pivot", "tol")], class = "qr"),
+       effects = c("(Intercept)", xnames),
+       rank = rank,
        family = family,
-       linear.predictors = eta, deviance = dev, aic = aic.model,
+       linear.predictors = eta, deviance = dev,
+       aic = aic.model,
        null.deviance = nulldev, iter = 0, weights = wt,
-       prior.weights = weights, df.residual = resdf, df.null = nulldf,
+       prior.weights = weights,
+       df.residual = resdf,
+       df.null = nulldf,
        y = y, converged = conv, boundary = boundary)
 }
 

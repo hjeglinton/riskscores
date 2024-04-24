@@ -258,7 +258,7 @@ risk_mod <- function(X, y, gamma = NULL, beta = NULL, weights = NULL,
 
   # Add intercept column
   if (!all(X[,1] == rep(1, nrow(X)))) {
-    X <- cbind(rep(1, nrow(X)), X)
+    X <- cbind(Intercept = rep(1, nrow(X)), X)
   }
 
   # Convert beta to integers within range
@@ -320,7 +320,6 @@ risk_mod <- function(X, y, gamma = NULL, beta = NULL, weights = NULL,
   glm_mod <- stats::glm(y~.-1, family = "binomial", weights = weights,
                  start = gamma*beta, method=glm_fit_risk, data = data.frame(X, y))
   names(beta) <- names(stats::coef(glm_mod))
-  names(beta)[1] <- "(Intercept)"
 
   # Save model score card
   nonzero_beta <- beta[beta != 0][-1]
