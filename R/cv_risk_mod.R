@@ -109,7 +109,7 @@ cv_risk_mod <- function(X, y, weights = NULL, beta = NULL, a = -10, b = 10,
   i = NULL # set global variable
   if (parallel) {
 
-    outlist = foreach::foreach(i = 1:nrow(res_df)) %dopar%
+    outlist = foreach::foreach(i = 1:nrow(res_df), .export="get_metrics_internal") %dopar%
       {
         fold_fcn(res_df[i,1],res_df[i,2])
       }
