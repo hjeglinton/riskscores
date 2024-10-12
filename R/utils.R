@@ -195,3 +195,25 @@ get_metrics_internal <- function(mod, X = NULL, y = NULL, weights = NULL,
 
   return(list(dev = dev, acc=acc, sens=sens, spec=spec))
 }
+
+#' Randomly round the initialized coefficients before coordinate descent
+#'
+#' Round each LR coefficient based on its decimal value. The decimal is the probability
+#' of rounding the coefficient up to the next integer
+#' @param beta Numeric vector or  logistic regression coefficients initialized
+#' before cyclical coordinate descent in `risk_mod()`. The first element is the
+#' intercept and is not modified.
+#' @return A numeric vector with randomized rounding (apart from the first element).
+randomized_rounding <- function(beta) {
+
+  # Extract the decimals of the coefficients, excluding the intercept
+  beta_dec <- beta[-1] %% 1
+  # Binary rounding outcome
+  decision <- rbinom(n = length(beta_dec), size = 1, prob = beta_dec)
+
+  # Apply the randomized rounding for columns 2 to n
+  beta[-1] <- floor(beta[-1]) + decision
+
+  return(beta)
+}
+
