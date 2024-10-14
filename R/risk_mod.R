@@ -296,7 +296,7 @@ risk_mod <- function(X, y, gamma = NULL, beta = NULL, weights = NULL,
     # Round so betas within range
     gamma <- max(abs(coef_vals[-1]))/min(abs(a + 0.5), abs(b + 0.5))
     beta <- coef_vals/gamma
-    beta[-1] <- round(beta[-1])
+    beta <- randomized_rounding(beta)
   }
 
 
