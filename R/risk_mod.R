@@ -313,8 +313,8 @@ risk_mod <- function(X, y, gamma = NULL, beta = NULL, weights = NULL,
   if (length(beta) != ncol(X)) stop("beta and X non-compatible")
   if (length(y) != nrow(X)) stop("y and X non-compatible")
 
-  if (!is.integer(n_times_run) | n_times_run < 0) {
-    stop("n_times_run must be a positive integer")
+  if (!is.integer(n_train_runs) | n_train_runs < 0) {
+    stop("n_train_runs must be a positive integer")
   }
 
   # Function to run coordinate descent
@@ -368,11 +368,11 @@ risk_mod <- function(X, y, gamma = NULL, beta = NULL, weights = NULL,
     return(mod)
   }
 
-  # Return the model with the highest accuracy after n_times_run trains
+  # Return the model with the highest accuracy after n_train_runs trains
   highest_acc <- -Inf
   highest_acc_mod <- NULL
 
-  for (i in 1:n_times_run) {
+  for (i in 1:n_train_runs) {
     mod <- run_risk_mod()
     mod_pred_der <- predict(mod, type = "response")[,1]
 
