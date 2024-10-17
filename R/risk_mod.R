@@ -313,7 +313,7 @@ risk_mod <- function(X, y, gamma = NULL, beta = NULL, weights = NULL,
   if (length(beta) != ncol(X)) stop("beta and X non-compatible")
   if (length(y) != nrow(X)) stop("y and X non-compatible")
 
-  if (!is.integer(n_train_runs) | n_train_runs < 0) {
+  if (n_train_runs != round(n_train_runs) | n_train_runs < 0) {
     stop("n_train_runs must be a positive integer")
   }
 
