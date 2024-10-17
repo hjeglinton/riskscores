@@ -375,9 +375,10 @@ risk_mod <- function(X, y, gamma = NULL, beta = NULL, weights = NULL,
   for (i in 1:n_train_runs) {
     mod <- run_risk_mod()
     mod_pred_der <- predict(mod, type = "response")[,1]
+    mod_auc <- roc(y, mod_pred_der, quiet=TRUE) %>% auc()
 
-    if (mod_pred_der > highest_acc) {
-      highest_acc <- mod_pred_der
+    if (mod_auc > highest_acc) {
+      highest_acc <- mod_auc
       highest_acc_mod <- mod
     }
   }
