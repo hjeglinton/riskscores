@@ -208,6 +208,9 @@ risk_coord_desc <- function(X, y, gamma, beta, weights, lambda0 = 0,
 #' @param weights Numeric vector of length \eqn{n} with weights for each
 #'  observation. Unless otherwise specified, default will give equal weight to
 #'  each observation.
+#'  @param n_train_runs A positive integer representing the number of times to
+#'  train the model, returning the run with the highest accuracy for the
+#'  training data.
 #' @param lambda0 Penalty coefficient for L0 term (default: 0).
 #'  See [cv_risk_mod()] for `lambda0` tuning.
 #' @param a Integer lower bound for coefficients (default: -10).
@@ -245,8 +248,8 @@ risk_coord_desc <- function(X, y, gamma, beta, weights, lambda0 = 0,
 #' mod3$model_card
 #' @export
 risk_mod <- function(X, y, gamma = NULL, beta = NULL, weights = NULL,
-                     lambda0 = 0, a = -10, b = 10, max_iters = 100, tol= 1e-5,
-                     shuffle = TRUE, seed = NULL) {
+                     n_train_runs = 5, lambda0 = 0, a = -10, b = 10,
+                     max_iters = 100,  tol = 1e-5, shuffle = TRUE, seed = NULL) {
 
   # Set seed
   if (!is.null(seed)) {
@@ -310,50 +313,74 @@ risk_mod <- function(X, y, gamma = NULL, beta = NULL, weights = NULL,
   if (length(beta) != ncol(X)) stop("beta and X non-compatible")
   if (length(y) != nrow(X)) stop("y and X non-compatible")
 
-  # Run coordinate descent from initial solution
-  res <- risk_coord_desc(X, y, gamma, beta, weights, lambda0, a, b, max_iters,
-                         tol, shuffle)
-  gamma <- res$gamma
-  beta <- res$beta
-
-  # Convert to GLM object
-  glm_mod <- stats::glm(y~.-1, family = "binomial", weights = weights,
-                 start = gamma*beta, method=glm_fit_risk, data = data.frame(X, y))
-  names(beta) <- names(stats::coef(glm_mod))
-
-  # Save model score card
-  nonzero_beta <- beta[beta != 0][-1]
-  if (length(nonzero_beta) <= 1) {
-    model_card <- NULL
-    score_map <- NULL
-  } else {
-    model_card <- data.frame(Points = nonzero_beta)
-
-    # Get range of possible scores
-    X_nonzero <- X[,which(beta != 0)]
-    X_nonzero <- X_nonzero[,-1]
-    min_pts <- rep(NA, length(nonzero_beta))
-    max_pts <- rep(NA, length(nonzero_beta))
-    for (i in 1:ncol(X_nonzero)) {
-      temp <- nonzero_beta[i] * c(min(X_nonzero[,i]), max(X_nonzero[,i]))
-      min_pts[i] <- min(temp)
-      max_pts[i] <- max(temp)
-    }
-
-    score_range <- seq(sum(min_pts), sum(max_pts))
-
-    # Map scores to risk
-    v <- gamma*(beta[1] + score_range)
-    p <- exp(v)/(1+exp(v))
-
-    # Save score map
-    score_map <- data.frame(Score = score_range,
-                            Risk = round(p,4))
+  if (!is.integer(n_times_run) | n_times_run < 0) {
+    stop("n_times_run must be a positive integer")
   }
 
-  # Return risk_mod object
-  mod <- list(gamma=gamma, beta=beta, glm_mod=glm_mod, X=X, y=y, weights=weights,
-              lambda0 = lambda0, model_card = model_card, score_map = score_map)
-  class(mod) <- "risk_mod"
-  return(mod)
+  # Function to run coordinate descent
+  run_risk_mod <- function() {
+    # Run coordinate descent from initial solution
+    res <- risk_coord_desc(X, y, gamma, beta, weights, lambda0, a, b, max_iters,
+                           tol, shuffle)
+
+    gamma <- res$gamma
+    beta <- res$beta
+
+    # Convert to GLM object
+    glm_mod <- stats::glm(y~.-1, family = "binomial", weights = weights,
+                          start = gamma*beta, method=glm_fit_risk, data = data.frame(X, y))
+    names(beta) <- names(stats::coef(glm_mod))
+
+    # Save model score card
+    nonzero_beta <- beta[beta != 0][-1]
+    if (length(nonzero_beta) <= 1) {
+      model_card <- NULL
+      score_map <- NULL
+    } else {
+      model_card <- data.frame(Points = nonzero_beta)
+
+      # Get range of possible scores
+      X_nonzero <- X[,which(beta != 0)]
+      X_nonzero <- X_nonzero[,-1]
+      min_pts <- rep(NA, length(nonzero_beta))
+      max_pts <- rep(NA, length(nonzero_beta))
+      for (i in 1:ncol(X_nonzero)) {
+        temp <- nonzero_beta[i] * c(min(X_nonzero[,i]), max(X_nonzero[,i]))
+        min_pts[i] <- min(temp)
+        max_pts[i] <- max(temp)
+      }
+
+      score_range <- seq(sum(min_pts), sum(max_pts))
+
+      # Map scores to risk
+      v <- gamma*(beta[1] + score_range)
+      p <- exp(v)/(1+exp(v))
+
+      # Save score map
+      score_map <- data.frame(Score = score_range,
+                              Risk = round(p,4))
+    }
+
+    # Return risk_mod object
+    mod <- list(gamma=gamma, beta=beta, glm_mod=glm_mod, X=X, y=y, weights=weights,
+                lambda0 = lambda0, model_card = model_card, score_map = score_map)
+    class(mod) <- "risk_mod"
+    return(mod)
+  }
+
+  # Return the model with the highest accuracy after n_times_run trains
+  highest_acc <- -Inf
+  highest_acc_mod <- NULL
+
+  for (i in 1:n_times_run) {
+    mod <- run_risk_mod()
+    mod_pred_der <- predict(mod, type = "response")[,1]
+
+    if (mod_pred_der > highest_acc) {
+      highest_acc <- mod_pred_der
+      highest_acc_mod <- mod
+    }
+  }
+
+  return(highest_acc_mod)
 }
