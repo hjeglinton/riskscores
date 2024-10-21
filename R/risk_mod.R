@@ -209,8 +209,8 @@ risk_coord_desc <- function(X, y, gamma, beta, weights, lambda0 = 0,
 #'  observation. Unless otherwise specified, default will give equal weight to
 #'  each observation.
 #'  @param n_train_runs A positive integer representing the number of times to
-#'  train the model, returning the run with the highest accuracy for the
-#'  training data.
+#'  train the model, returning the run with the lowest objective function for
+#'  the training data.
 #' @param lambda0 Penalty coefficient for L0 term (default: 0).
 #'  See [cv_risk_mod()] for `lambda0` tuning.
 #' @param a Integer lower bound for coefficients (default: -10).
@@ -368,20 +368,19 @@ risk_mod <- function(X, y, gamma = NULL, beta = NULL, weights = NULL,
     return(mod)
   }
 
-  # Return the model with the highest accuracy after n_train_runs trains
-  highest_acc <- -Inf
-  highest_acc_mod <- NULL
+  # Return the model with the lowest objective function
+  min_obj_fn <- Inf
+  best_mod <- NULL
 
   for (i in 1:n_train_runs) {
-    mod <- run_risk_mod()
-    mod_pred_der <- predict(mod, type = "response")[,1]
-    mod_auc <- roc(y, mod_pred_der, quiet=TRUE) %>% auc()
+    curr_mod <- run_risk_mod()
+    curr_obj_fn <- obj_fcn(X, y, curr_mod$gamma, curr_mod$beta, weights, lambda0)
 
-    if (mod_auc > highest_acc) {
-      highest_acc <- mod_auc
-      highest_acc_mod <- mod
+    if (curr_obj_fn < min_obj_fn) {
+      min_obj_fn <- curr_obj_fn
+      best_mod <- curr_mod
     }
   }
 
-  return(highest_acc_mod)
+  return(best_mod)
 }
