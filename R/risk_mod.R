@@ -209,8 +209,8 @@ risk_coord_desc <- function(X, y, gamma, beta, weights, lambda0 = 0,
 #'  observation. Unless otherwise specified, default will give equal weight to
 #'  each observation.
 #'  @param n_train_runs A positive integer representing the number of times to
-#'  train the model, returning the run with the lowest objective function for
-#'  the training data.
+#'  initialize and train the model, returning the run with the lowest objective
+#'  function for the training data.
 #' @param lambda0 Penalty coefficient for L0 term (default: 0).
 #'  See [cv_risk_mod()] for `lambda0` tuning.
 #' @param a Integer lower bound for coefficients (default: -10).
@@ -259,6 +259,10 @@ risk_mod <- function(X, y, gamma = NULL, beta = NULL, weights = NULL,
   # Check that X is a matrix
   if (!is.matrix(X)) stop ("X must be a matrix")
 
+  if (n_train_runs != round(n_train_runs) | n_train_runs < 0) {
+    stop("n_train_runs must be a positive integer")
+  }
+
   # Add intercept column
   if (!all(X[,1] == rep(1, nrow(X)))) {
     X <- cbind(Intercept = rep(1, nrow(X)), X)
@@ -279,46 +283,42 @@ risk_mod <- function(X, y, gamma = NULL, beta = NULL, weights = NULL,
   if (is.null(weights)) {
     weights <- rep(1, nrow(X))}
 
-  # If initial gamma is null but have betas then use update function
-  if (is.null(gamma) & (!is.null(beta))){
-    upd <- update_gamma_intercept(X, y, beta, weights)
-    gamma <- upd$gamma
-    beta <- upd$beta
-  }
+  # Function to run coordinate descent with initialization
+  run_risk_mod <- function(X, y, gamma, beta, weights, lambda0, a, b,
+                           max_iters, tol, shuffle) {
+    # If initial gamma is null but have betas then use update function
+    if (is.null(gamma) & (!is.null(beta))){
+      upd <- update_gamma_intercept(X, y, beta, weights)
+      gamma <- upd$gamma
+      beta <- upd$beta
+    }
 
-  # Initial beta is null then round LR coefficients using median
-  if (is.null(beta)){
-    # Initial model
-    df <- data.frame(X, y)
-    init_mod <- stats::glm(y~.-1, family = "binomial", weights = weights, data = df)
+    # Initial beta is null then round LR coefficients using median
+    if (is.null(beta)){
+      # Initial model
+      df <- data.frame(X, y)
+      init_mod <- stats::glm(y~.-1, family = "binomial", weights = weights, data = df)
 
-    # Replace NA's with 0's
-    coef_vals <- unname(stats::coef(init_mod))
-    coef_vals[is.na(coef_vals)] <- 0
+      # Replace NA's with 0's
+      coef_vals <- unname(stats::coef(init_mod))
+      coef_vals[is.na(coef_vals)] <- 0
 
-    # Round so betas within range
-    gamma <- max(abs(coef_vals[-1]))/min(abs(a + 0.5), abs(b + 0.5))
-    beta <- coef_vals/gamma
-    beta <- randomized_rounding(beta)
-  }
+      # Round so betas within range
+      gamma <- max(abs(coef_vals[-1]))/min(abs(a + 0.5), abs(b + 0.5))
+      beta <- coef_vals/gamma
+      beta <- randomized_rounding(beta)
+    }
 
+    # Check no numeric issues
+    if (is.nan(gamma) | sum(is.nan(beta)) > 0){
+      stop("Initial gamma or beta is NaN - check starting value for beta")
+    }
+    if (is.na(gamma) | sum(is.na(beta)) > 0){
+      stop("Initial gamma or beta is NA - check starting value for beta")
+    }
+    if (length(beta) != ncol(X)) stop("beta and X non-compatible")
+    if (length(y) != nrow(X)) stop("y and X non-compatible")
 
-  # Check no numeric issues
-  if (is.nan(gamma) | sum(is.nan(beta)) > 0){
-    stop("Initial gamma or beta is NaN - check starting value for beta")
-  }
-  if (is.na(gamma) | sum(is.na(beta)) > 0){
-    stop("Initial gamma or beta is NA - check starting value for beta")
-  }
-  if (length(beta) != ncol(X)) stop("beta and X non-compatible")
-  if (length(y) != nrow(X)) stop("y and X non-compatible")
-
-  if (n_train_runs != round(n_train_runs) | n_train_runs < 0) {
-    stop("n_train_runs must be a positive integer")
-  }
-
-  # Function to run coordinate descent
-  run_risk_mod <- function() {
     # Run coordinate descent from initial solution
     res <- risk_coord_desc(X, y, gamma, beta, weights, lambda0, a, b, max_iters,
                            tol, shuffle)
@@ -373,7 +373,8 @@ risk_mod <- function(X, y, gamma = NULL, beta = NULL, weights = NULL,
   best_mod <- NULL
 
   for (i in 1:n_train_runs) {
-    curr_mod <- run_risk_mod()
+    curr_mod <- run_risk_mod(X, y, gamma, beta, weights, lambda0, a, b,
+                             max_iters, tol, shuffle)
     curr_obj_fn <- obj_fcn(curr_mod$X, curr_mod$y, curr_mod$gamma,
                            curr_mod$beta, curr_mod$weights, curr_mod$lambda0)
 
