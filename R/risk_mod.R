@@ -326,52 +326,16 @@ risk_mod <- function(X, y, gamma = NULL, beta = NULL, weights = NULL,
     gamma <- res$gamma
     beta <- res$beta
 
-    # Convert to GLM object
-    glm_mod <- stats::glm(y~.-1, family = "binomial", weights = weights,
-                          start = gamma*beta, method=glm_fit_risk, data = data.frame(X, y))
-    names(beta) <- names(stats::coef(glm_mod))
-
-    # Save model score card
-    nonzero_beta <- beta[beta != 0][-1]
-    if (length(nonzero_beta) <= 1) {
-      model_card <- NULL
-      score_map <- NULL
-    } else {
-      model_card <- data.frame(Points = nonzero_beta)
-
-      # Get range of possible scores
-      X_nonzero <- X[,which(beta != 0)]
-      X_nonzero <- X_nonzero[,-1]
-      min_pts <- rep(NA, length(nonzero_beta))
-      max_pts <- rep(NA, length(nonzero_beta))
-      for (i in 1:ncol(X_nonzero)) {
-        temp <- nonzero_beta[i] * c(min(X_nonzero[,i]), max(X_nonzero[,i]))
-        min_pts[i] <- min(temp)
-        max_pts[i] <- max(temp)
-      }
-
-      score_range <- seq(sum(min_pts), sum(max_pts))
-
-      # Map scores to risk
-      v <- gamma*(beta[1] + score_range)
-      p <- exp(v)/(1+exp(v))
-
-      # Save score map
-      score_map <- data.frame(Score = score_range,
-                              Risk = round(p,4))
-    }
-
-    # Return risk_mod object
-    mod <- list(gamma=gamma, beta=beta, glm_mod=glm_mod, X=X, y=y, weights=weights,
-                lambda0 = lambda0, model_card = model_card, score_map = score_map)
-    class(mod) <- "risk_mod"
-    return(mod)
+    return(list(gamma=gamma, beta=beta, X=X, y=y,
+                weights=weights, lambda0=lambda0))
   }
 
-  # Return the model with the lowest objective function
+  # Track minimum objective function and best model parameters
   min_obj_fn <- Inf
-  best_mod <- NULL
+  best_gamma <- NULL
+  best_beta <- NULL
 
+  # Run n_train_runs to find the best model
   for (i in 1:n_train_runs) {
     curr_mod <- run_risk_mod(X, y, gamma, beta, weights, lambda0, a, b,
                              max_iters, tol, shuffle)
@@ -380,9 +344,50 @@ risk_mod <- function(X, y, gamma = NULL, beta = NULL, weights = NULL,
 
     if (curr_obj_fn < min_obj_fn) {
       min_obj_fn <- curr_obj_fn
-      best_mod <- curr_mod
+      best_gamma <- curr_mod$gamma
+      best_beta <- curr_mod$beta
     }
   }
 
+  # Convert to GLM object
+  glm_mod <- stats::glm(y~.-1, family = "binomial", weights = weights,
+                        start = best_gamma*best_beta, method=glm_fit_risk,
+                        data = data.frame(X, y))
+  names(best_beta) <- names(stats::coef(glm_mod))
+
+  # Generate score card and score map for the best model
+  nonzero_beta <- best_beta[best_beta != 0][-1] # Exclude intercept
+  if (length(nonzero_beta) <= 1) {
+    model_card <- NULL
+    score_map <- NULL
+  } else {
+    model_card <- data.frame(Points = nonzero_beta)
+
+    # Get range of possible scores
+    X_nonzero <- X[,which(best_beta != 0)][,-1]
+    min_pts <- rep(NA, length(nonzero_beta))
+    max_pts <- rep(NA, length(nonzero_beta))
+    for (i in 1:ncol(X_nonzero)) {
+      temp <- nonzero_beta[i] * c(min(X_nonzero[,i]), max(X_nonzero[,i]))
+      min_pts[i] <- min(temp)
+      max_pts[i] <- max(temp)
+    }
+
+    score_range <- seq(sum(min_pts), sum(max_pts))
+
+    # Map scores to risk
+    v <- best_gamma*(best_beta[1] + score_range)
+    p <- exp(v)/(1+exp(v))
+
+    # Save score map
+    score_map <- data.frame(Score = score_range,
+                            Risk = round(p,4))
+  }
+
+  # Return the best model with score card and score map
+  best_mod <- list(gamma=best_gamma, beta=best_beta, glm_mod=glm_mod, X=X, y=y,
+                   weights=weights, lambda0 = lambda0, model_card = model_card,
+                   score_map = score_map)
+  class(best_mod) <- "risk_mod"
   return(best_mod)
 }
