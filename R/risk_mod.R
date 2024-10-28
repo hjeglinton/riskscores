@@ -326,8 +326,7 @@ risk_mod <- function(X, y, gamma = NULL, beta = NULL, weights = NULL,
     gamma <- res$gamma
     beta <- res$beta
 
-    return(list(gamma=gamma, beta=beta, X=X, y=y,
-                weights=weights, lambda0=lambda0))
+    return(list(gamma=gamma, beta=beta))
   }
 
   # Track minimum objective function and best model parameters
@@ -339,8 +338,7 @@ risk_mod <- function(X, y, gamma = NULL, beta = NULL, weights = NULL,
   for (i in 1:n_train_runs) {
     curr_mod <- run_risk_mod(X, y, gamma, beta, weights, lambda0, a, b,
                              max_iters, tol, shuffle)
-    curr_obj_fn <- obj_fcn(curr_mod$X, curr_mod$y, curr_mod$gamma,
-                           curr_mod$beta, curr_mod$weights, curr_mod$lambda0)
+    curr_obj_fn <- obj_fcn(X, y, curr_mod$gamma, curr_mod$beta, weights, lambda0)
 
     if (curr_obj_fn < min_obj_fn) {
       min_obj_fn <- curr_obj_fn
