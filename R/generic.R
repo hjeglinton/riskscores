@@ -137,7 +137,7 @@ predict.risk_mod <- function(object, newx = NULL,
 #' @param ... Additional arguments affecting the plot produced
 #' @return Object of class "ggplot".
 #' @export
-plot.cv_risk_mod <- function(x, ...) {
+plot_deviance.cv_risk_mod <- function(x, ...) {
 
   # get mean/sd deviance of lambda_min
   min_mean <- x$results$mean_dev[x$results$lambda0 == x$lambda_min]
@@ -174,6 +174,86 @@ plot.cv_risk_mod <- function(x, ...) {
           axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust=1))
 
 
+  return(cv_plot)
+}
+
+plot_accuracy.cv_risk_mod <- function(x, ...) {
+  
+  # MODIFIED: get mean/sd accuracy of lambda_min
+  min_mean <- x$results$mean_acc[x$results$lambda0 == x$lambda_min]
+  min_sd <- x$results$sd_acc[x$results$lambda0 == x$lambda_min]
+  
+  # define x axis breaks
+  lambda_grid <- log(x$results$lambda0)
+  nlambda <- length(lambda_grid)
+  nonzero_seq <- x$results$nonzero
+  if (nlambda > 25) {
+    new_n <- ceiling(nlambda/25)
+    lambda_grid <- lambda_grid[seq(1, nlambda, new_n)]
+    nonzero_seq[-seq(1, nlambda, new_n)] <- ""
+  }
+  
+  # create plot
+  lambda0 = mean_acc = sd_acc = NULL # set global variables
+  cv_plot <- ggplot2::ggplot(x$results, ggplot2::aes(x = log(lambda0), y = mean_acc)) +
+    ggplot2::geom_point() +
+    ggplot2::geom_linerange(ggplot2::aes(ymin = mean_acc - sd_acc, ymax= mean_acc + sd_acc)) +
+    ggplot2::geom_point(ggplot2::aes(x = log(x$lambda_min), y = min_mean), color = "red") +
+    ggplot2::geom_linerange(ggplot2::aes(x = log(x$lambda_min), ymin = min_mean - min_sd,
+                                         ymax= min_mean + min_sd), color = "red", inherit.aes = FALSE) +
+    ggplot2::geom_hline(yintercept = min_mean + min_sd, linetype = "dashed", color = "red") +
+    
+    ggplot2::geom_text(ggplot2::aes(x = log(lambda0), label = nonzero_seq,
+                                    y = (max(mean_acc) + max(sd_acc))*1.01),
+                       size = 3, col = 'grey30') +
+    
+    ggplot2::scale_x_continuous(breaks = lambda_grid, labels = round(lambda_grid, 1)) +
+    ggplot2::labs(x = "Log Lambda", y = "Accuracy") +
+    ggplot2::theme_bw() +
+    ggplot2::theme(panel.grid.minor = ggplot2::element_blank(),
+                   axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust=1))
+  
+  
+  return(cv_plot)
+}
+
+plot.cv_risk_mod <- function(x, ...) {
+  
+  # get mean/sd auc of lambda_min
+  min_mean <- x$results$mean_auc[x$results$lambda0 == x$lambda_min]
+  min_sd <- x$results$sd_auc[x$results$lambda0 == x$lambda_min]
+  
+  # define x axis breaks
+  lambda_grid <- log(x$results$lambda0)
+  nlambda <- length(lambda_grid)
+  nonzero_seq <- x$results$nonzero
+  if (nlambda > 25) {
+    new_n <- ceiling(nlambda/25)
+    lambda_grid <- lambda_grid[seq(1, nlambda, new_n)]
+    nonzero_seq[-seq(1, nlambda, new_n)] <- ""
+  }
+  
+  # create plot
+  lambda0 = mean_auc = sd_auc = NULL # set global variables
+  cv_plot <- ggplot2::ggplot(x$results, ggplot2::aes(x = log(lambda0), y = mean_auc)) +
+    ggplot2::geom_point() +
+    ggplot2::geom_linerange(ggplot2::aes(ymin = mean_auc - sd_auc, ymax= mean_auc + sd_auc)) +
+    ggplot2::geom_point(ggplot2::aes(x = log(x$lambda_min), y = min_mean), color = "red") +
+    ggplot2::geom_linerange(ggplot2::aes(x = log(x$lambda_min), ymin = min_mean - min_sd,
+                                         ymax= min_mean + min_sd), color = "red", inherit.aes = FALSE) +
+    ggplot2::geom_hline(yintercept = min_mean + min_sd, linetype = "dashed", color = "red") +
+    
+    ggplot2::geom_text(ggplot2::aes(x = log(lambda0), label = nonzero_seq,
+                                    y = (max(mean_auc) + max(sd_auc))*1.01),
+                       size = 3, col = 'grey30') +
+    
+    ggplot2::scale_x_continuous(breaks = lambda_grid, labels = round(lambda_grid, 1)) +
+    ggplot2::labs(x = "Log Lambda", y = "AUC") +
+    ggplot2::theme_bw() +
+    ggplot2::theme(panel.grid.minor = ggplot2::element_blank(),
+                   axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust=1))
+  
+  
   return(cv_plot)
 }
 

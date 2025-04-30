@@ -133,70 +133,9 @@ glm_fit_risk <- function (x, y, weights = rep(1, nobs), start = NULL,
 #' @param mod An object of class `risk_mod`, usually a result of a call to
 #'  [risk_mod()].
 #' @inheritParams get_metrics
-#' @return List with deviance (dev), accuracy (acc), sensitivity (sens), and
-#'  specificity (spec).
+#' @return List with deviance (dev), accuracy (acc), sensitivity (sens),
+#'  specificity (spec), and auc.
 get_metrics_internal <- function(mod, X = NULL, y = NULL, weights = NULL,
-                        threshold = 0.50, threshold_type = c("response", "score")){
-
-  threshold_type <- match.arg(threshold_type)
-
-  # Check threshold value against type
-  if (!is.null(threshold) & threshold_type == "response") {
-    if (threshold < 0 | threshold > 1) stop("threshold must be between 0 and 1 when threshold_type = 'response'")
-  } else if (!is.null(threshold) & threshold_type == "score") {
-    if(threshold > 0 & threshold < 1) warning("Threshold input is being interpreted as a score but it may be a probability. Use `threshold_type = 'response'` to interpret input as a probability.")
-  }
-
-  # Check if new data
-  if (is.null(X)+is.null(y) == 1) stop("Must provide both X and y")
-  if (is.null(X) & is.null(y)){
-    X = mod$X
-    y = mod$y
-  }
-
-  # Add intercept column
-  if (!all(X[,1] == rep(1, nrow(X)))) {
-    X <- cbind(rep(1, nrow(X)), X)
-  }
-
-  # Check compatibility
-  if (nrow(X) != length(y)) stop("X and y must match in number of observations")
-  if (ncol(X) != length(mod$beta)) stop("X is incompatible with the model")
-  if (sum(! (y %in% c(0,1)))) stop("y must be 0/1 valued")
-
-  # Define threshold
-  if (threshold_type == "response") {
-    prob_cutoff <- threshold
-  } else if (threshold_type == "score") {
-    prob_cutoff <- get_risk(mod, threshold)
-  }
-
-  # Get predicted probs and classes
-  v <- mod$gamma * X %*% mod$beta
-  v <- clip_exp_vals(v)
-  p <- exp(v)/(1+exp(v))
-  pred <- ifelse(p >= prob_cutoff, 1, 0)
-
-  # Deviance
-  p[p == 1] <- 0.99999
-  p[p == 0] <- 0.00001
-  dev <- -2*sum(y*log(p)+(1-y)*log(1-p))
-
-  # Confusion matrix
-  tp <- sum(pred == 1 & y == 1)
-  tn <- sum(pred == 0 & y == 0)
-  fp <- sum(pred == 1 & y == 0)
-  fn <- sum(pred == 0 & y == 1)
-
-  # Accuracy values
-  acc <- (tp+tn)/(tp+tn+fp+fn)
-  sens <- tp/(tp+fn)
-  spec <- tn/(tn+fp)
-
-  return(list(dev = dev, acc=acc, sens=sens, spec=spec))
-}
-
-get_metrics_internal_annealscore <- function(mod, X = NULL, y = NULL, weights = NULL,
                                  threshold = 0.50, threshold_type = c("response", "score")){
   
   threshold_type <- match.arg(threshold_type)

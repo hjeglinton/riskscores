@@ -123,6 +123,43 @@ update_gamma_intercept <- function(X, y, beta, weights) {
   return (list(gamma=gamma, beta=beta))
 }
 
+#' Initial Temperature for Simulated Annealing
+#'
+#' Finds initial temperature so that will accept 90% of current obj with 95% probability
+#' @inheritParams annealscore
+#' @Return Numeric initial temperature value
+#' @noRd
+getInitTemp <- function(X, y, gamma, beta, weights, lambda0) {
+  obj <- obj_fcn(X, y, gamma, beta, weights, lambda0)
+  max_obj = 1.1*obj
+  T <- (obj - max_obj) / log(0.95)
+  return(T)
+}
+
+#' Alpha for Simulated Annealing
+#'
+#' Calculates alpha value so that will accept initial obj with 15% probability
+#' @param p Number of covariates
+#' @Return Numeric alpha value
+#' @noRd
+getAlpha <- function(p) {
+  # Calculate alpha using the corrected formula
+  alpha <- (log(0.95) / log(0.15))^(1 / p)
+  return(max(alpha, 0.95))
+}
+
+#' Acceptance probability for neighbor given current solution
+#' @param e1 current objective
+#' @param e2 candidate objective
+#' @Return Numeric probability
+#' @noRd
+getAcceptanceProb <- function(e1, e2, T) {
+  if (e2 < e1) {
+    return(1)
+  }
+  return(exp(-(e2 - e1) / T))
+}
+
 #' Run Coordinate Descent
 #'
 #' Find the optimal risk score model through a coordinate descent algorithm.
@@ -174,9 +211,108 @@ risk_coord_desc <- function(X, y, gamma, beta, weights, lambda0 = 0,
   }
 
   # Check if max iterations
-  if(iters >= max_iters) warning("Algorithm reached maximum number of
+  if(iters >= max_iters && iters > 2) warning("Algorithm reached maximum number of
                                  iterations")
   return(list(gamma=gamma, beta=beta))
+}
+
+#' Run AnnealScore
+#'
+#' Find the optimal risk score model through a simulated annealing algorithm.
+#' At each iteration, the algorithm updates the model intercept and scalar value
+#' (gamma) based on a randomly generated neighbor. Algorithm runs until it
+#' converges or reaches the maximum number of iterations.
+#' @inheritParams risk_mod
+#' @param gamma Scalar to rescale coefficients for prediction.
+#' @param beta Numeric vector with \eqn{p} coefficients.
+#' @return A list containing the optimal gamma (numeric) and
+#'  beta (numeric vector).
+#' @noRd
+annealscore <- function(X, y, gamma, beta, weights, lambda0 = 0,
+                        a = -10, b = 10, max_iters = 1000, tol=1e-5) {
+  # Getting initial objective function and temperature
+  obj <- obj_fcn(X, y, gamma, beta, weights, lambda0)
+  T <- getInitTemp(X, y, gamma, beta, weights, lambda0)
+  p <- ncol(X)-1
+  p_try <- max(floor(p/2),1)
+  
+  alpha <- getAlpha(p)
+  best_beta <- beta
+  best_obj <- obj
+  best_gamma <- gamma
+  
+  for (iter in 1:max_iters) {
+    # Cool down
+    T <- alpha * T
+    
+    # Selecting subset of indices
+    indices <- sample(1:p, p_try)
+    
+    X_sub <- X[,c(indices+1)]
+    score = as.vector(X %*% beta)
+    X_sub <- cbind(X_sub, score = score)
+    
+    # Building an LR model for residuals
+    mod_scores <- glm(y ~ score, data = data.frame(X, y = y, score = score))
+    resid <- y-predict(mod_scores, type = "response")
+    mod_lm <- lm(resid ~ ., data = as.data.frame(X_sub), weights = weights)
+    coef_lm <- coef(mod_lm)
+    
+    # Replace NA's with 0's
+    coef_lm[is.na(coef_lm)] <- 0
+    
+    selected_coefs <- coef_lm[-c(1, length(coef_lm))]
+    
+    # If all coefficients are zero, then skip this iteration
+    if (max(abs(selected_coefs)) == 0) {
+      next
+    }
+    
+    scaled_coefs <- abs(selected_coefs) / max(abs(selected_coefs))
+    try_beta <- beta 
+    
+    # Randomly round
+    for (i in 1:p_try) {
+      var_index <- indices[i]
+      
+      # beta[i] +1 or -1 if p-value is significant
+      if (runif(1) < scaled_coefs[i]) {
+        try_beta[var_index + 1] <- try_beta[var_index + 1] + sign(selected_coefs[i])
+      }
+    }
+    try_beta <- pmax(try_beta, a)
+    try_beta <- pmin(try_beta, b)
+    
+    upd <- update_gamma_intercept(X, y, try_beta, weights)
+    try_beta <- upd$beta
+    try_gamma <- upd$gamma
+    
+    try_obj <- obj_fcn(X, y, try_gamma, try_beta, weights, lambda0)
+    
+    # Accept the new solution based on probability
+    acc_prob <- getAcceptanceProb(best_obj, try_obj, T)
+    
+    if (runif(1) < acc_prob ) {
+      obj <- try_obj
+      beta <- try_beta
+      gamma <- try_gamma
+    } 
+    
+    # Update best seen objective function value
+    if (obj < best_obj) {
+      best_obj <- obj
+      best_beta <- beta
+      best_gamma <- gamma
+    }
+    
+    if (T < tol) {
+      break
+    }
+  }
+  
+  # Run one iteration of coordinate descent
+  result <- risk_coord_desc(X, y, best_gamma, best_beta, weights, lambda0 = lambda0, a = a, b = b, max_iters = 2)
+  return (list(gamma=result$gamma, beta=result$beta))
 }
 
 #' Fit an Integer Risk Score Model
@@ -222,6 +358,8 @@ risk_coord_desc <- function(X, y, gamma, beta, weights, lambda0 = 0,
 #' @param seed An integer that is used as argument by `set.seed()` for
 #'    offsetting the random number generator. Default is to not set a
 #'    particular randomization seed.
+#' @param method A string that specifies which method ("riskcd" or "annealscore") 
+#' to run (default: "annealscore")
 #' @return An object of class "risk_mod" with the following attributes:
 #'  \item{gamma}{Final scalar value.}
 #'  \item{beta}{Vector of integer coefficients.}
@@ -241,16 +379,22 @@ risk_coord_desc <- function(X, y, gamma, beta, weights, lambda0 = 0,
 #' mod1 <- risk_mod(X, y)
 #' mod1$model_card
 #'
-#' mod2 <- risk_mod(X, y, lambda0 = 0.01)
+#' mod2 <- risk_mod(X, y, lambda0 = 0.01,)
 #' mod2$model_card
 #'
-#' mod3 <- risk_mod(X, y, lambda0 = 0.01, a = -5, b = 5)
+#' mod3 <- risk_mod(X, y, lambda0 = 0.01, a = -5, b = 5, method = "riskcd")
 #' mod3$model_card
 #' @export
 risk_mod <- function(X, y, gamma = NULL, beta = NULL, weights = NULL,
-                     n_train_runs = 5, lambda0 = 0, a = -10, b = 10,
-                     max_iters = 100,  tol = 1e-5, shuffle = TRUE, seed = NULL) {
+                     n_train_runs = 1, lambda0 = 0, a = -10, b = 10,
+                     max_iters = 10000,  tol = 1e-5, shuffle = TRUE, seed = NULL,
+                     method = "annealscore") {
 
+  # Check valid method
+  if (is.null(method) || !(method %in% c("annealscore", "riskCD"))) {
+    stop("method is not valid")
+  }
+  
   # Set seed
   if (!is.null(seed)) {
     set.seed(seed)
@@ -293,7 +437,7 @@ risk_mod <- function(X, y, gamma = NULL, beta = NULL, weights = NULL,
       beta <- upd$beta
     }
 
-    # Initial beta is null then round LR coefficients using median
+    # Initial beta is null then round LR coefficients using median and randomized rounding
     if (is.null(beta)){
       # Initial model
       df <- data.frame(X, y)
@@ -318,10 +462,15 @@ risk_mod <- function(X, y, gamma = NULL, beta = NULL, weights = NULL,
     }
     if (length(beta) != ncol(X)) stop("beta and X non-compatible")
     if (length(y) != nrow(X)) stop("y and X non-compatible")
-
-    # Run coordinate descent from initial solution
-    res <- risk_coord_desc(X, y, gamma, beta, weights, lambda0, a, b, max_iters,
-                           tol, shuffle)
+    
+    if (method == "annealscore") {
+      # Run coordinate descent from initial solution
+      res <- annealscore(X, y, gamma, beta, weights, lambda0, a, b, max_iters, tol)
+    }
+    if (method == "riskcd") {
+      res <- risk_coord_desc(X, y, gamma, beta, weights, lambda0, a, b, max_iters,
+                             tol, shuffle)
+    }
 
     gamma <- res$gamma
     beta <- res$beta

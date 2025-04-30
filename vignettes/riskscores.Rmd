@@ -18,6 +18,7 @@ library(kableExtra)
 library(dplyr)
 library(ggplot2)
 library(magrittr)
+library(pROC)
 
 set.seed(1)
 
@@ -38,7 +39,7 @@ library(riskscores)
 
 ## Optimization Problem
 
-The `riskscores` package uses a cyclical coordinate descent algorithm to solve the following optimization problem.
+The `riskscores` package uses a simulated annealing (or cyclical coordinate descent if otherwise specified) algorithm to solve the following optimization problem.
 
 \begin{equation}
 \begin{aligned}
@@ -101,7 +102,7 @@ foldids <- stratify_folds(y, nfolds = 5, seed = 1)
 The `cv_risk_mod()` function runs cross validation for a grid of possible $\lambda_0$ values. If the user does not specify the vector of $\lambda_0$ values to test, the program constructs this $\lambda_0$ sequence. The maximum $\lambda_0$ in this sequence is the smallest value such that all coefficients in the logistic regression model are zero. The minimum $\lambda_0$ in the sequence is calculated using the user-defined `lambda_ratio` argument. The $\lambda_0$ grid is created by generating `nlambda` values linear on the log scale from the minimum $\lambda_0$ to the maximum $\lambda_0$. We've set `nlambda` to 25, so the program will construct an appropriate sequence of 25 $\lambda_0$ values to test using cross validation. 
 
 ```{r}
-cv_results <- cv_risk_mod(X, y, foldids = foldids, nlambda = 25)
+cv_results <- cv_risk_mod(X, y, foldids = foldids, nlambda = 5)
 ```
 
 
