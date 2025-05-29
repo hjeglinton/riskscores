@@ -150,9 +150,9 @@ cv_risk_mod <- function(X, y, weights = NULL, beta = NULL, a = -10, b = 10,
   # Find lambda_min and lambda1_se for auc
   lambda_min_ind <- which.max(res_df_summary$mean_auc)
   lambda_min <- res_df_summary$lambda0[lambda_min_ind]
-  min_auc_1se <- res_df_summary$mean_auc[lambda_min_ind] +
+  min_auc_1se <- res_df_summary$mean_auc[lambda_min_ind] -
     res_df_summary$sd_auc[lambda_min_ind]
-  lambda_1se <- res_df_summary$lambda0[max(which(res_df_summary$mean_auc <= min_auc_1se))]
+  lambda_1se <- res_df_summary$lambda0[max(which(res_df_summary$mean_auc >= min_auc_1se))]
 
   cv_obj <- list(results = res_df_summary, lambda_min = lambda_min,
                  lambda_1se =lambda_1se)

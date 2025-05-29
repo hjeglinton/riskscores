@@ -504,7 +504,7 @@ risk_mod <- function(X, y, gamma = NULL, beta = NULL, weights = NULL,
 
   # Generate score card and score map for the best model
   nonzero_beta <- best_beta[best_beta != 0][-1] # Exclude intercept
-  if (length(nonzero_beta) <= 1) {
+  if (length(nonzero_beta) == 0) {
     model_card <- NULL
     score_map <- NULL
   } else {
