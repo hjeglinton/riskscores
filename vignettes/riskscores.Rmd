@@ -20,7 +20,7 @@ library(ggplot2)
 library(magrittr)
 library(pROC)
 
-set.seed(1)
+set.seed(5)
 
 ```
 
@@ -94,7 +94,7 @@ The penalty coefficient $\lambda_0$ controls the sparsity of the model -- a larg
 Ideally, each cross-validation fold should contain an approximately equal proportion of cases. The `riskscores` package contains the function `stratify_folds()` that creates fold IDs with an equal proportion of cases in each fold. These fold IDs can be entered into the `cv_risk_mod()` function under the `foldids` parameter. Otherwise, `cv_risk_mod()` will set random fold IDs. 
 
 ```{r}
-foldids <- stratify_folds(y, nfolds = 5, seed = 1)
+foldids <- stratify_folds(y, nfolds = 5, seed = 5)
 
 ```
 
@@ -102,12 +102,12 @@ foldids <- stratify_folds(y, nfolds = 5, seed = 1)
 The `cv_risk_mod()` function runs cross validation for a grid of possible $\lambda_0$ values. If the user does not specify the vector of $\lambda_0$ values to test, the program constructs this $\lambda_0$ sequence. The maximum $\lambda_0$ in this sequence is the smallest value such that all coefficients in the logistic regression model are zero. The minimum $\lambda_0$ in the sequence is calculated using the user-defined `lambda_ratio` argument. The $\lambda_0$ grid is created by generating `nlambda` values linear on the log scale from the minimum $\lambda_0$ to the maximum $\lambda_0$. We've set `nlambda` to 25, so the program will construct an appropriate sequence of 25 $\lambda_0$ values to test using cross validation. 
 
 ```{r}
-cv_results <- cv_risk_mod(X, y, foldids = foldids, nlambda = 5)
+cv_results <- cv_risk_mod(X, y, foldids = foldids, nlambda = 25)
 ```
 
 
 
-Running `plot()` on a `cv_risk_mod` object creates a plot of mean deviance for each $\lambda_0$ value in the grid. The number of nonzero coefficients that are produced by each $\lambda_0$ value when fit on the full data are listed at the top of the plot. The $\lambda_0$ value with the lowest mean deviance ("lambda_min") is indicated in red, and its standard deviation is marked with a red dashed line. Its precise value can be accessed by calling `cv_results$lambda_min`. If we want a sparser model, we could increase $\lambda_0$ to "lambda_1se", the largest value whose mean deviance is within one standard error of "lambda_min". This value can be accessed by calling `cv_results$lambda_1se`. In our example, "lambda_min" creates a model with 8 non-zero coefficients and "lambda_1se" creates a model with 3 non-zero coefficients. 
+Running `plot()` on a `cv_risk_mod` object creates a plot of mean deviance for each $\lambda_0$ value in the grid. The number of nonzero coefficients that are produced by each $\lambda_0$ value when fit on the full data are listed at the top of the plot. The $\lambda_0$ value with the lowest mean deviance ("lambda_min") is indicated in red, and its standard deviation is marked with a red dashed line. Its precise value can be accessed by calling `cv_results$lambda_min`. If we want a sparser model, we could increase $\lambda_0$ to "lambda_1se", the largest value whose mean deviance is within one standard error of "lambda_min". This value can be accessed by calling `cv_results$lambda_1se`. In our example, "lambda_min" creates a model with 8 non-zero coefficients and "lambda_1se" creates a model with 4 non-zero coefficients. 
 
 ```{r, fig.width = 5, fig.height = 3, dpi = 125}
 plot(cv_results)
@@ -132,14 +132,14 @@ tail(cv_results$results)
 
 ## Fitting a Risk Score Model
 
-We'll fit a model on the full data using the function `risk_mod()`. We'll use the "lambda_1se" value determined by cross-validation as our $\lambda_0$ parameter.  
+We'll fit a model on the full data using the function `risk_mod()`. We'll use the "lambda_min" value determined by cross-validation as our $\lambda_0$ parameter.  
 
 ```{r}
 mod <- risk_mod(X, y, lambda0 = cv_results$lambda_1se)
 
 ```
 
-The integer risk score model can be viewed by calling `mod$model_card`. An individual's risk score can be calculated by multiplying each covariate response by its respective number of points and then adding all points together. In our example below, a patient with a ClumpThickness value of 1, a UniformityOfCellShape value of 10, and a BareNuclei value of 5 would receive a score of $10(1) + 8(10) + 7(5) = 125$.
+The integer risk score model can be viewed by calling `mod$model_card`. An individual's risk score can be calculated by multiplying each covariate response by its respective number of points and then adding all points together. In our example below, a patient with a ClumpThickness value of 5, a UniformityOfCellShape value of 1, a BareNuclei value of 1, and a BlandChromatin value of 3 would receive a score of $9(5) + 6(1) + 7(1) + 8(3) = 82$.
 
 ```{r, echo = FALSE}
 mod$model_card %>%
@@ -147,13 +147,13 @@ mod$model_card %>%
 ```
 
 
-Each score can then be mapped to a risk probability. The `mod$score_map` dataframe maps an integer range of scores to their associated risk. For this example dataset, `mod$score_map` includes a range of integer scores from 25 to 200, which are the minimum and maximum scores predicted from the training data. The table below shows a sample of these scores mapped to their associated risk. We can see that a patient who received a score of 125 would have a 77.65% risk of their tissue sample being malignant.  
+Each score can then be mapped to a risk probability. The `mod$score_map` dataframe maps an integer range of scores to their associated risk. For this example dataset, `mod$score_map` includes a range of integer scores from 25 to 200, which are the minimum and maximum scores predicted from the training data. The table below shows a sample of these scores mapped to their associated risk. We can see that a patient who received a score of 150 would have a 82.70% risk of their tissue sample being malignant.  
 
 
 
 ```{r, echo = FALSE}
 mod$score_map %>%
-  filter(Score %in% seq(25, 200, 25)) %>%
+  filter(Score %in% seq(30, 300, 30)) %>%
   kable(caption = "`mod$score_map`")
 ```
 
@@ -161,9 +161,9 @@ mod$score_map %>%
 The function `get_risk()` can be used to calculate the risk from a given score (or a vector of scores). Likewise, the function `get_score()` calculates the score associated with a given risk (or vector of risk probabilities). 
 
 ```{r}
-get_risk(mod, score = 125)
+get_risk(mod, score = 150)
 
-get_score(mod, risk = 0.7765)
+get_score(mod, risk = 0.8270133)
 ```
 
 We can evaluate the model's performance under different classification thresholds using the `get_metrics()` function. 
@@ -222,7 +222,7 @@ coef(mod$glm_mod)
 Running `predict()` on a `risk_mod` object allows for three types of prediction, as the `type` parameter can be set to either `'link'`, `'response'`, or  `'score'`. These first two options are the same as when `predict()` is run on a logistic `glm` object. The added `'score'` option returns each subject's score, as calculated from the integer coefficients in the risk score model. 
 
 
-The table below compares the three possible prediction types for five example subjects. The first three columns contain data for clump thickness, uniformity of cell shape, and bare nuclei, respectively. 
+The table below compares the three possible prediction types for five example subjects. 
 
 ```{r, echo = FALSE}
 
@@ -234,27 +234,28 @@ response <- predict(mod, type = "response")[1:5] %>%
 score <- predict(mod, type = "score")[1:5]
 
 data.frame(X[1:5,which(dimnames(X)[[2]] %in% c("ClumpThickness",
-                                             "UniformityOfCellShape",
-                                             "BareNuclei"))],
+                                               "UniformityOfCellShape",
+                                               "BareNuclei",
+                                               "BlandChromatin"))],
                        score, link, response) %>%
   kable("html",
         booktabs = T,
-        col.names = c("CT","UCS", "BN", 
+        col.names = c("CT", "UCS", "BN", "BC", 
                      "'score'", "'link'", "'response'"),
         caption = "Comparison of `predict()` outputs") %>%
   kable_styling("striped", full_width = F) %>%
-  add_header_above(c("Covariates" = 3, "Prediction" = 3))
+  add_header_above(c("Covariates" = 4, "Prediction" = 3))
 
 ```
 
 The 'score' is a linear combination of the covariates and their integer coefficients: 
 
-- $\text{score} = 10(\text{CT}) + 8(\text{UCS}) + 7(\text{BN})$
+- $\text{score} = 9(\text{CT}) + 6(\text{UCS}) + 7 (\text{BN}) + 8(\text{BC})$
 
 
 The 'link' is a linear combination of the covariates using the full logistic regression equation:
 
-- $\text{link} = -8.56 + 0.78(\text{CT}) + 0.63(\text{UCS}) + 0.55(\text{BN})$
+- $\text{link} = -9.15 + 0.643(\text{CT}) + 0.429(\text{UCS}) + 0.500(\text{BN}) + 0.572(\text{BC})$
 
 The 'response' converts these link values to probabilities: 
 
@@ -266,6 +267,6 @@ The 'response' converts these link values to probabilities:
 The relationship between scores and risk can be visualized by calling `plot()` on a `risk_mod` object. 
 
 ```{r}
-plot(mod, score_min = 25, score_max = 200)
+plot(mod, score_min = 30, score_max = 300)
 ```
 
