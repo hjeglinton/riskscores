@@ -140,7 +140,7 @@ cv_risk_mod <- function(X, y, weights = NULL, beta = NULL, a = -10, b = 10,
     mod <- risk_mod(X, y,  gamma = NULL, beta = NULL,
                     weights = weights, lambda0 = l0, a = a, b = b,
                     max_iters = max_iters, tol = tol, shuffle = FALSE)
-    non_zeros <- sum(mod$beta[-1] != 0)
+    non_zeros <- sum(mod$beta != 0)
     return(c(non_zeros))
   }
 

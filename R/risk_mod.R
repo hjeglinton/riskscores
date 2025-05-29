@@ -512,12 +512,20 @@ risk_mod <- function(X, y, gamma = NULL, beta = NULL, weights = NULL,
 
     # Get range of possible scores
     X_nonzero <- X[,which(best_beta != 0)][,-1]
-    min_pts <- rep(NA, length(nonzero_beta))
-    max_pts <- rep(NA, length(nonzero_beta))
-    for (i in 1:ncol(X_nonzero)) {
-      temp <- nonzero_beta[i] * c(min(X_nonzero[,i]), max(X_nonzero[,i]))
-      min_pts[i] <- min(temp)
-      max_pts[i] <- max(temp)
+    
+    if (length(nonzero_beta) == 1){
+      min_pts <- min(X_nonzero)
+      max_pts <- max(X_nonzero)
+    }
+    else{
+      min_pts <- rep(NA, length(nonzero_beta))
+      max_pts <- rep(NA, length(nonzero_beta))
+      
+      for (i in 1:ncol(X_nonzero)) {
+        temp <- nonzero_beta[i] * c(min(X_nonzero[,i]), max(X_nonzero[,i]))
+        min_pts[i] <- min(temp)
+        max_pts[i] <- max(temp)
+      }
     }
 
     score_range <- seq(sum(min_pts), sum(max_pts))
