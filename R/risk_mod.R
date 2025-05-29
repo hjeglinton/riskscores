@@ -317,13 +317,13 @@ annealscore <- function(X, y, gamma, beta, weights, lambda0 = 0,
 
 #' Fit an Integer Risk Score Model
 #'
-#' Fits an optimized integer risk score model using a cyclical coordinate descent
-#'  algorithm. Returns an object of class "risk_mod".
+#' Fits an optimized integer risk score model using a heuristic
+#' algorithm. Returns an object of class "risk_mod".
 #'
 #' @details
 #'
-#' This function uses a cyclical coordinate descent algorithm to solve the
-#' following optimization problem.
+#' This function uses either a cyclical coordinate descent algorithm or
+#' simulated annealing algorithm to solve the following optimization problem.
 #'
 #'  \deqn{\min_{\alpha,\beta} \quad \frac{1}{n} \sum_{i=1}^{n} (\gamma y_i x_i^T \beta - log(1 + exp(\gamma x_i^T \beta))) + \lambda_0 \sum_{j=1}^{p} 1(\beta_{j} \neq 0)}
 #'
@@ -463,8 +463,8 @@ risk_mod <- function(X, y, gamma = NULL, beta = NULL, weights = NULL,
     if (length(beta) != ncol(X)) stop("beta and X non-compatible")
     if (length(y) != nrow(X)) stop("y and X non-compatible")
     
+    # Run appropriate method to estimate betas
     if (method == "annealscore") {
-      # Run coordinate descent from initial solution
       res <- annealscore(X, y, gamma, beta, weights, lambda0, a, b, max_iters, tol)
     }
     if (method == "riskcd") {

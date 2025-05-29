@@ -194,7 +194,7 @@ get_metrics_internal <- function(mod, X = NULL, y = NULL, weights = NULL,
   spec <- tn/(tn+fp)
   
   # AUC values
-  roc <-roc(y, predict(mod, X, type = "response")[,1], quiet = TRUE)
+  roc <-pROC::roc(y, predict(mod, X, type = "response")[,1], quiet = TRUE)
   return(list(dev = dev, acc=acc, sens=sens, spec=spec, auc=roc$auc))
 }
 
