@@ -11,7 +11,7 @@ cv_risk_mod(
   beta = NULL,
   a = -10,
   b = 10,
-  max_iters = 100,
+  max_iters = 10000,
   tol = 1e-05,
   nlambda = 25,
   lambda_min_ratio = ifelse(nrow(X) < ncol(X), 0.01, 1e-04),
@@ -20,7 +20,8 @@ cv_risk_mod(
   foldids = NULL,
   parallel = FALSE,
   shuffle = TRUE,
-  seed = NULL
+  seed = NULL,
+  method = "annealscore"
 )
 }
 \arguments{
@@ -41,7 +42,7 @@ logistic regression model.}
 
 \item{b}{Integer upper bound for coefficients (default: 10).}
 
-\item{max_iters}{Maximum number of iterations (default: 100).}
+\item{max_iters}{Maximum number of iterations (default: 10000).}
 
 \item{tol}{Tolerance for convergence (default: 1e-5).}
 
@@ -71,16 +72,19 @@ descent (default: TRUE).}
 \item{seed}{An integer that is used as argument by \code{set.seed()} for
 offsetting the random number generator. Default is to not set a
 particular randomization seed.}
+
+\item{method}{A string that specifies which method ("riskcd" or "annealscore")
+to run (default: "annealscore")}
 }
 \value{
 An object of class "cv_risk_mod" with the following attributes:
-\item{results}{Dataframe containing a summary of deviance and accuracy for each
-value of \code{lambda0} (mean and SD). Also includes the number of nonzero
+\item{results}{Dataframe containing a summary of deviance, accuracy, and auc for
+each value of \code{lambda0} (mean and SD). Also includes the number of nonzero
 coefficients that are produced by each \code{lambda0} when fit on the full data.}
 \item{lambda_min}{Numeric value indicating the \code{lambda0} that resulted in the
-lowest mean deviance.}
+highest mean auc}
 \item{lambda_1se}{Numeric value indicating the largest \code{lamdba0} that
-had a mean deviance within one standard error of \code{lambda_min}.}
+had a mean auc within one standard error of \code{lambda_min}.}
 }
 \description{
 Runs k-fold cross-validation on a grid of \eqn{\lambda_0} values. Records

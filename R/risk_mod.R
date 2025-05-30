@@ -127,7 +127,7 @@ update_gamma_intercept <- function(X, y, beta, weights) {
 #'
 #' Finds initial temperature so that will accept 90% of current obj with 95% probability
 #' @inheritParams annealscore
-#' @Return Numeric initial temperature value
+#' @return Numeric initial temperature value
 #' @noRd
 getInitTemp <- function(X, y, gamma, beta, weights, lambda0) {
   obj <- obj_fcn(X, y, gamma, beta, weights, lambda0)
@@ -140,7 +140,7 @@ getInitTemp <- function(X, y, gamma, beta, weights, lambda0) {
 #'
 #' Calculates alpha value so that will accept initial obj with 15% probability
 #' @param p Number of covariates
-#' @Return Numeric alpha value
+#' @return Numeric alpha value
 #' @noRd
 getAlpha <- function(p) {
   # Calculate alpha using the corrected formula
@@ -151,7 +151,7 @@ getAlpha <- function(p) {
 #' Acceptance probability for neighbor given current solution
 #' @param e1 current objective
 #' @param e2 candidate objective
-#' @Return Numeric probability
+#' @return Numeric probability
 #' @noRd
 getAcceptanceProb <- function(e1, e2, T) {
   if (e2 < e1) {
@@ -344,22 +344,22 @@ annealscore <- function(X, y, gamma, beta, weights, lambda0 = 0,
 #' @param weights Numeric vector of length \eqn{n} with weights for each
 #'  observation. Unless otherwise specified, default will give equal weight to
 #'  each observation.
-#'  @param n_train_runs A positive integer representing the number of times to
+#' @param n_train_runs A positive integer representing the number of times to
 #'  initialize and train the model, returning the run with the lowest objective
 #'  function for the training data.
 #' @param lambda0 Penalty coefficient for L0 term (default: 0).
 #'  See [cv_risk_mod()] for `lambda0` tuning.
 #' @param a Integer lower bound for coefficients (default: -10).
 #' @param b Integer upper bound for coefficients (default: 10).
-#' @param max_iters Maximum number of iterations (default: 100).
+#' @param max_iters Maximum number of iterations (default: 10000).
 #' @param tol Tolerance for convergence (default: 1e-5).
 #' @param shuffle Whether order of coefficients is shuffled during coordinate
-#' descent (default: TRUE).
+#'    descent (default: TRUE).
 #' @param seed An integer that is used as argument by `set.seed()` for
 #'    offsetting the random number generator. Default is to not set a
 #'    particular randomization seed.
 #' @param method A string that specifies which method ("riskcd" or "annealscore") 
-#' to run (default: "annealscore")
+#'    to run (default: "annealscore")
 #' @return An object of class "risk_mod" with the following attributes:
 #'  \item{gamma}{Final scalar value.}
 #'  \item{beta}{Vector of integer coefficients.}
@@ -391,7 +391,7 @@ risk_mod <- function(X, y, gamma = NULL, beta = NULL, weights = NULL,
                      method = "annealscore") {
 
   # Check valid method
-  if (is.null(method) || !(method %in% c("annealscore", "riskCD"))) {
+  if (is.null(method) || !(method %in% c("annealscore", "riskcd"))) {
     stop("method is not valid")
   }
   

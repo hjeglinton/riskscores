@@ -35,8 +35,8 @@ risk probability values ("response") or threshold values expressed as scores
 from the risk score model ("score"). Default: "response".}
 }
 \value{
-List with deviance (dev), accuracy (acc), sensitivity (sens), and
-specificity (spec).
+List with deviance (dev), accuracy (acc), sensitivity (sens),
+specificity (spec), and auc.
 }
 \description{
 Calculates a risk model's deviance, accuracy, sensitivity, and specificity

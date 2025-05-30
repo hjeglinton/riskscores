@@ -48,34 +48,34 @@ y <- breastcancer[,1]
 X <- as.matrix(breastcancer[,-1])
 
 # Fit risk score model 
-mod <- risk_mod(X, y, lambda0 = 0.058)
+mod <- risk_mod(X, y, lambda = 0.0392)
 ```
 
 The integer risk score model can be viewed by calling `mod$model_card`.
 An individual’s risk score can be calculated by multiplying each
 covariate response by its respective number of points and then adding
 all points together. In our example below, a patient with a
-ClumpThickness value of 1, a BareNuclei value of 5, and a BlandChromatin
-value of 10 would receive a score of $10(1) + 7(5) + 8(10) = 125$.
+ClumpThickness value of 5, a BareNuclei value of 1, and a BlandChromatin
+value of 3 would receive a score of $9(5) + 7(1) + 8(3) = 76$.
 
 |                | Points |
 |:---------------|-------:|
-| ClumpThickness |     10 |
+| ClumpThickness |      9 |
 | BareNuclei     |      7 |
 | BlandChromatin |      8 |
 
 Each score can then be mapped to a risk probability. The `mod$score_map`
 dataframe maps an integer range of scores to their associated risk. We
-can see that a patient who received a score of 125 would have a 77.9%
+can see that a patient who received a score of 120 would have a 78.86%
 risk of their tissue sample being malignant.
 
 | Score |   Risk |
 |------:|-------:|
-|    25 | 0.0006 |
-|    50 | 0.0054 |
-|    75 | 0.0446 |
-|   100 | 0.2886 |
-|   125 | 0.7788 |
-|   150 | 0.9683 |
-|   175 | 0.9962 |
-|   200 | 0.9996 |
+|    30 | 0.0012 |
+|    60 | 0.0176 |
+|    90 | 0.2052 |
+|   120 | 0.7886 |
+|   150 | 0.9818 |
+|   180 | 0.9987 |
+|   210 | 0.9999 |
+|   240 | 1.0000 |

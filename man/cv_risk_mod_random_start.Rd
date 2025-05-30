@@ -36,7 +36,7 @@ each observation.}
 
 \item{b}{Integer upper bound for coefficients (default: 10).}
 
-\item{max_iters}{Maximum number of iterations (default: 100).}
+\item{max_iters}{Maximum number of iterations (default: 10000).}
 
 \item{tol}{Tolerance for convergence (default: 1e-5).}
 

@@ -10,13 +10,15 @@ risk_mod(
   gamma = NULL,
   beta = NULL,
   weights = NULL,
+  n_train_runs = 1,
   lambda0 = 0,
   a = -10,
   b = 10,
-  max_iters = 100,
+  max_iters = 10000,
   tol = 1e-05,
   shuffle = TRUE,
-  seed = NULL
+  seed = NULL,
+  method = "annealscore"
 )
 }
 \arguments{
@@ -35,6 +37,10 @@ logistic regression model.}
 observation. Unless otherwise specified, default will give equal weight to
 each observation.}
 
+\item{n_train_runs}{A positive integer representing the number of times to
+initialize and train the model, returning the run with the lowest objective
+function for the training data.}
+
 \item{lambda0}{Penalty coefficient for L0 term (default: 0).
 See \code{\link[=cv_risk_mod]{cv_risk_mod()}} for \code{lambda0} tuning.}
 
@@ -42,7 +48,7 @@ See \code{\link[=cv_risk_mod]{cv_risk_mod()}} for \code{lambda0} tuning.}
 
 \item{b}{Integer upper bound for coefficients (default: 10).}
 
-\item{max_iters}{Maximum number of iterations (default: 100).}
+\item{max_iters}{Maximum number of iterations (default: 10000).}
 
 \item{tol}{Tolerance for convergence (default: 1e-5).}
 
@@ -52,6 +58,9 @@ descent (default: TRUE).}
 \item{seed}{An integer that is used as argument by \code{set.seed()} for
 offsetting the random number generator. Default is to not set a
 particular randomization seed.}
+
+\item{method}{A string that specifies which method ("riskcd" or "annealscore")
+to run (default: "annealscore")}
 }
 \value{
 An object of class "risk_mod" with the following attributes:
@@ -68,12 +77,12 @@ An object of class "risk_mod" with the following attributes:
 with each score's associated risk probability.}
 }
 \description{
-Fits an optimized integer risk score model using a cyclical coordinate descent
+Fits an optimized integer risk score model using a heuristic
 algorithm. Returns an object of class "risk_mod".
 }
 \details{
-This function uses a cyclical coordinate descent algorithm to solve the
-following optimization problem.
+This function uses either a cyclical coordinate descent algorithm or
+simulated annealing algorithm to solve the following optimization problem.
 
 \deqn{\min_{\alpha,\beta} \quad \frac{1}{n} \sum_{i=1}^{n} (\gamma y_i x_i^T \beta - log(1 + exp(\gamma x_i^T \beta))) + \lambda_0 \sum_{j=1}^{p} 1(\beta_{j} \neq 0)}
 
@@ -91,9 +100,9 @@ X <- as.matrix(breastcancer[,2:ncol(breastcancer)])
 mod1 <- risk_mod(X, y)
 mod1$model_card
 
-mod2 <- risk_mod(X, y, lambda0 = 0.01)
+mod2 <- risk_mod(X, y, lambda0 = 0.01,)
 mod2$model_card
 
-mod3 <- risk_mod(X, y, lambda0 = 0.01, a = -5, b = 5)
+mod3 <- risk_mod(X, y, lambda0 = 0.01, a = -5, b = 5, method = "riskcd")
 mod3$model_card
 }

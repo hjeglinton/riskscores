@@ -14,7 +14,7 @@ knitr::opts_chunk$set(
 
 library(knitr)
 library(dplyr)
-set.seed(1)
+set.seed(5)
 ```
 
 # riskscores
@@ -52,7 +52,7 @@ X <- as.matrix(breastcancer[,-1])
 mod <- risk_mod(X, y, lambda = 0.0392)
 ```
 
-The integer risk score model can be viewed by calling `mod$model_card`. An individual's risk score can be calculated by multiplying each covariate response by its respective number of points and then adding all points together. In our example below, a patient with a ClumpThickness value of 5, a UniformityOfCellShape value of 1, a BareNuclei value of 1, and a BlandChromatin value of 3 would receive a score of $9(5) + 6(1) + 7(1) + 8(3) = 82$.
+The integer risk score model can be viewed by calling `mod$model_card`. An individual's risk score can be calculated by multiplying each covariate response by its respective number of points and then adding all points together. In our example below, a patient with a ClumpThickness value of 5, a BareNuclei value of 1, and a BlandChromatin value of 3 would receive a score of $9(5) + 7(1) + 8(3) = 76$.
 
 ```{r, echo = FALSE}
 mod$model_card %>%
@@ -60,7 +60,7 @@ mod$model_card %>%
 ```
 
 
-Each score can then be mapped to a risk probability. The `mod$score_map` dataframe maps an integer range of scores to their associated risk. We can see that a patient who received a score of 150 would have a 82.7% risk of their tissue sample being malignant.  
+Each score can then be mapped to a risk probability. The `mod$score_map` dataframe maps an integer range of scores to their associated risk. We can see that a patient who received a score of 120 would have a 78.86% risk of their tissue sample being malignant.  
 
 
 ```{r, echo = FALSE}
