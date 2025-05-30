@@ -253,10 +253,10 @@ annealscore <- function(X, y, gamma, beta, weights, lambda0 = 0,
     X_sub <- cbind(X_sub, score = score)
     
     # Building an LR model for residuals
-    mod_scores <- glm(y ~ score, data = data.frame(X, y = y, score = score))
-    resid <- y-predict(mod_scores, type = "response")
-    mod_lm <- lm(resid ~ ., data = as.data.frame(X_sub), weights = weights)
-    coef_lm <- coef(mod_lm)
+    mod_scores <- stats::glm(y ~ score, data = data.frame(X, y = y, score = score))
+    resid <- y - stats::predict(mod_scores, type = "response")
+    mod_lm <- stats::lm(resid ~ ., data = as.data.frame(X_sub), weights = weights)
+    coef_lm <- stats::coef(mod_lm)
     
     # Replace NA's with 0's
     coef_lm[is.na(coef_lm)] <- 0
@@ -276,7 +276,7 @@ annealscore <- function(X, y, gamma, beta, weights, lambda0 = 0,
       var_index <- indices[i]
       
       # beta[i] +1 or -1 if p-value is significant
-      if (runif(1) < scaled_coefs[i]) {
+      if (stats::runif(1) < scaled_coefs[i]) {
         try_beta[var_index + 1] <- try_beta[var_index + 1] + sign(selected_coefs[i])
       }
     }
@@ -292,7 +292,7 @@ annealscore <- function(X, y, gamma, beta, weights, lambda0 = 0,
     # Accept the new solution based on probability
     acc_prob <- getAcceptanceProb(best_obj, try_obj, T)
     
-    if (runif(1) < acc_prob ) {
+    if (stats::runif(1) < acc_prob ) {
       obj <- try_obj
       beta <- try_beta
       gamma <- try_gamma

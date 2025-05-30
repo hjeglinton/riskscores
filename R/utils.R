@@ -194,7 +194,7 @@ get_metrics_internal <- function(mod, X = NULL, y = NULL, weights = NULL,
   spec <- tn/(tn+fp)
   
   # AUC values
-  roc <-pROC::roc(y, predict(mod, X, type = "response")[,1], quiet = TRUE)
+  roc <-pROC::roc(y, predict.risk_mod(mod, X, type = "response")[,1], quiet = TRUE)
   return(list(dev = dev, acc=acc, sens=sens, spec=spec, auc=roc$auc))
 }
 
@@ -211,7 +211,7 @@ randomized_rounding <- function(beta) {
   # Extract the decimals of the coefficients, excluding the intercept
   beta_dec <- beta[-1] %% 1
   # Binary rounding outcome
-  decision <- rbinom(n = length(beta_dec), size = 1, prob = beta_dec)
+  decision <- stats::rbinom(n = length(beta_dec), size = 1, prob = beta_dec)
 
   # Apply the randomized rounding for columns 2 to n
   beta[-1] <- floor(beta[-1]) + decision
