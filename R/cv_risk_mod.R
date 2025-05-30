@@ -17,9 +17,9 @@
 #' @param parallel If `TRUE`, parallel processing (using [foreach]) is implemented
 #'    during cross-validation to increase efficiency (default: `FALSE`).
 #'    User must first register parallel backend with a function such as
-#'    \link[doParallel::registerDoParallel]{registerDoParallel}.
+#'    \link[doParallel:registerDoParallel]{registerDoParallel}.
 #' @return An object of class "cv_risk_mod" with the following attributes:
-#'  \item{results}{Dataframe containing a summary of deviance, accuracy, and auc for 
+#'  \item{results}{Dataframe containing a summary of deviance, accuracy, and auc for
 #'    each value of `lambda0` (mean and SD). Also includes the number of nonzero
 #'    coefficients that are produced by each `lambda0` when fit on the full data.}
 #'  \item{lambda_min}{Numeric value indicating the `lambda0` that resulted in the
@@ -39,7 +39,7 @@ cv_risk_mod <- function(X, y, weights = NULL, beta = NULL, a = -10, b = 10,
   if (is.null(method) || !(method %in% c("annealscore", "riskcd"))) {
     stop("method is not valid")
   }
-  
+
   # Set seed
   if (!is.null(seed)) {
     set.seed(seed)
