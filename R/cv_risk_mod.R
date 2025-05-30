@@ -36,7 +36,7 @@ cv_risk_mod <- function(X, y, weights = NULL, beta = NULL, a = -10, b = 10,
                         method = "annealscore") {
 
   # Check valid method
-  if (is.null(method) || !(method %in% c("annealscore", "riskCD"))) {
+  if (is.null(method) || !(method %in% c("annealscore", "riskcd"))) {
     stop("method is not valid")
   }
   
