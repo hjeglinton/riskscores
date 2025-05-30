@@ -61,10 +61,10 @@ will derive the lambda0 sequence based on the data (see \code{lambda_min_ratio})
 
 \item{foldids}{Optional vector of values between 1 and \code{nfolds}.}
 
-\item{parallel}{If \code{TRUE}, parallel processing (using \link{foreach}) is implemented
-during cross-validation to increase efficiency (default: \code{FALSE}).
-User must first register parallel backend with a function such as
-\link[doParallel::registerDoParallel]{registerDoParallel}.}
+\item{parallel}{If \code{TRUE}, parallel processing (using \link[foreach:foreach]{foreach})
+is implemented during cross-validation to increase efficiency
+(default: \code{FALSE}). User must first register parallel backend with
+a function such as \link[doParallel:registerDoParallel]{registerDoParallel}.}
 
 \item{shuffle}{Whether order of coefficients is shuffled during coordinate
 descent (default: TRUE).}

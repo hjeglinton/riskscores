@@ -14,10 +14,10 @@
 #'  will derive the lambda0 sequence based on the data (see `lambda_min_ratio`).
 #' @param nfolds Number of folds, implied if `foldids` provided (default: 10).
 #' @param foldids Optional vector of values between 1 and `nfolds`.
-#' @param parallel If `TRUE`, parallel processing (using [foreach]) is implemented
-#'    during cross-validation to increase efficiency (default: `FALSE`).
-#'    User must first register parallel backend with a function such as
-#'    \link[doParallel::registerDoParallel]{registerDoParallel}.
+#' @param parallel If `TRUE`, parallel processing (using \link[foreach:foreach]{foreach}) 
+#'    is implemented during cross-validation to increase efficiency 
+#'    (default: `FALSE`). User must first register parallel backend with 
+#'    a function such as \link[doParallel:registerDoParallel]{registerDoParallel}.
 #' @return An object of class "cv_risk_mod" with the following attributes:
 #'  \item{results}{Dataframe containing a summary of deviance, accuracy, and auc for 
 #'    each value of `lambda0` (mean and SD). Also includes the number of nonzero
