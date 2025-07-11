@@ -402,13 +402,30 @@ risk_mod <- function(X, y, gamma = NULL, beta = NULL, weights = NULL,
   }
 
   # Convert beta to integers within range
-  if (any(!(beta%%1==0)) | any(beta < a) | any(beta > b)) {
-    if (max(abs(beta[-1])) == 0) {
+  if ((a == 0) & (b == 0)) {
+    stop("Cannot restrict range to all zeros")
+  }
+  if (any(!(beta[-1]%%1==0)) | any(beta[-1] < a) | any(beta[-1] > b)) {
+    if (max(abs(beta_sub)) == 0) {
       scalar <- 1
     } else {
-      scalar <- max(abs(beta[-1]))/min(abs(a + 0.5), abs(b + 0.5))
+      if (a == 0){
+        beta[-1] <- pmax(0, beta[-1])
+        scalar <- max(beta[-1]/b)
+      } 
+      else if (b == 0){
+        beta[-1] <- pmin(0, beta[-1])
+        scalar <- max(beta[-1]/a)
+      } else{
+        beta_sub <- beta[-1]
+        beta_pos <- beta_sub[beta_sub >= 0]
+        beta_neg <- beta_sub[beta_neg <= 0]
+        scalar <- max(max(beta_neg/a), max(beta_pos/b))
+      }
     }
-    beta <- beta/scalar
+    if (scalar != 0){
+      beta <- beta/scalar
+    }
     beta[-1] <- round(beta[-1])
   }
 
