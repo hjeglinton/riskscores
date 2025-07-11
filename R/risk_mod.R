@@ -129,31 +129,20 @@ update_gamma_intercept <- function(X, y, beta, weights) {
 #' @inheritParams annealscore
 #' @return Numeric initial temperature value
 #' @noRd
-getInitTemp <- function(X, y, gamma, beta, weights, lambda0) {
+get_init_temp <- function(X, y, gamma, beta, weights, lambda0) {
   obj <- obj_fcn(X, y, gamma, beta, weights, lambda0)
   max_obj = 1.1*obj
   T <- (obj - max_obj) / log(0.95)
   return(T)
 }
 
-#' Alpha for Simulated Annealing
-#'
-#' Calculates alpha value so that will accept initial obj with 15% probability
-#' @param p Number of covariates
-#' @return Numeric alpha value
-#' @noRd
-getAlpha <- function(p) {
-  # Calculate alpha using the corrected formula
-  alpha <- (log(0.95) / log(0.15))^(1 / p)
-  return(max(alpha, 0.95))
-}
 
 #' Acceptance probability for neighbor given current solution
 #' @param e1 current objective
 #' @param e2 candidate objective
 #' @return Numeric probability
 #' @noRd
-getAcceptanceProb <- function(e1, e2, T) {
+get_acceptance_prob <- function(e1, e2, T) {
   if (e2 < e1) {
     return(1)
   }
@@ -232,11 +221,11 @@ annealscore <- function(X, y, gamma, beta, weights, lambda0 = 0,
                         a = -10, b = 10, max_iters = 1000, tol=1e-5) {
   # Getting initial objective function and temperature
   obj <- obj_fcn(X, y, gamma, beta, weights, lambda0)
-  T <- getInitTemp(X, y, gamma, beta, weights, lambda0)
+  T <- get_init_temp(X, y, gamma, beta, weights, lambda0)
   p <- ncol(X)-1
   p_try <- max(floor(p/2),1)
   
-  alpha <- getAlpha(p)
+  alpha <- 0.95
   best_beta <- beta
   best_obj <- obj
   best_gamma <- gamma
@@ -290,7 +279,7 @@ annealscore <- function(X, y, gamma, beta, weights, lambda0 = 0,
     try_obj <- obj_fcn(X, y, try_gamma, try_beta, weights, lambda0)
     
     # Accept the new solution based on probability
-    acc_prob <- getAcceptanceProb(best_obj, try_obj, T)
+    acc_prob <- get_acceptance_prob(best_obj, try_obj, T)
     
     if (stats::runif(1) < acc_prob ) {
       obj <- try_obj

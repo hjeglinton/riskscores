@@ -1,6 +1,6 @@
 Package: riskscores
 Title: Optimized Integer Risk Score Models
-Version: 1.2.1
+Version: 1.2.2
 Authors@R: c(
     person("Hannah", "Eglinton", , "eglintonh@gmail.com", role = c("aut", "cre")),
     person("Seehanah", "Tang", , "seehanah_tang@brown.edu", role = c("aut", "aut")),
