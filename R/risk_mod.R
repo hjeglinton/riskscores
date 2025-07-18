@@ -406,7 +406,7 @@ risk_mod <- function(X, y, gamma = NULL, beta = NULL, weights = NULL,
     stop("Cannot restrict range to all zeros")
   }
   if (any(!(beta[-1]%%1==0)) | any(beta[-1] < a) | any(beta[-1] > b)) {
-    if (max(abs(beta_sub)) == 0) {
+    if (max(abs(beta[-1])) == 0) {
       scalar <- 1
     } else {
       if (a == 0){
