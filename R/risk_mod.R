@@ -225,7 +225,7 @@ annealscore <- function(X, y, gamma, beta, weights, lambda0 = 0,
   p <- ncol(X)-1
   p_try <- max(floor(p/2),1)
   
-  alpha <- 0.97
+  alpha <- 0.95
   best_beta <- beta
   best_obj <- obj
   best_gamma <- gamma
