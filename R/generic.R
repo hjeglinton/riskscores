@@ -200,7 +200,7 @@ plot.cv_risk_mod <- function(x, ...) {
     ggplot2::geom_point(ggplot2::aes(x = log(x$lambda_min), y = min_mean), color = "red") +
     ggplot2::geom_linerange(ggplot2::aes(x = log(x$lambda_min), ymin = min_mean - min_sd,
                                          ymax= min_mean + min_sd), color = "red", inherit.aes = FALSE) +
-    ggplot2::geom_hline(yintercept = min_mean + min_sd, linetype = "dashed", color = "red") +
+    ggplot2::geom_hline(yintercept = min_mean - min_sd, linetype = "dashed", color = "red") +
     
     ggplot2::geom_text(ggplot2::aes(x = log(lambda0), label = nonzero_seq,
                                     y = (max(mean_auc) + max(sd_auc))*1.01),
